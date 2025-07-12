@@ -1,27 +1,26 @@
 # 🌀 homebridge-roomb-o-matic
 
 Roomba Homebridge plugin reimagined with O‑Matic Factory magic.  
-🚀 **True vacuum semantics, future-proof design, and brand-driven clarity.**
+🚀 **True vacuum semantics, future-ready design, and brand-driven clarity.**
 
 ---
 
 ## 💡 What is this?
 
-`homebridge-roomb-o-matic` is a fork and full reimagining of existing Roomba plugins for Homebridge. It exposes your iRobot Roomba as a **vacuum cleaner accessory**, preparing for the upcoming native vacuum support in HomeKit and Matter.
+`homebridge-roomb-o-matic` is a new, fully reimagined plugin to control your iRobot Roomba via Homebridge. It presents your Roomba as a proper vacuum accessory (via Fanv2 workaround) in HomeKit, while preparing for future Matter vacuum support.
 
 - Designed by **James Walker** at **O‑Matic Factory**.
-- Full TypeScript, modern structure.
-- Cleaner, simpler, no legacy clutter.
+- Full TypeScript, minimal dependencies.
+- Cleaner code, future-proof foundation.
 
 ---
 
 ## ✨ Features
 
-- ✅ Exposes as a vacuum accessory (using `Fanv2` workaround until full support lands).
-- ✅ Clean start/stop controls.
-- ✅ Future-ready design for Matter vacuum semantics.
-- ✅ Cleaner code, modern TypeScript, minimal dependencies.
-- ✅ O‑Matic Factory brand governance, Spec 5 aligned.
+- ✅ Exposes Roomba as a vacuum (Fanv2 workaround).
+- ✅ Start, stop, and status reporting.
+- ✅ Prepares for upcoming native vacuum semantics in HomeKit and Matter.
+- ✅ Fully branded and managed by O‑Matic Factory.
 
 ---
 
