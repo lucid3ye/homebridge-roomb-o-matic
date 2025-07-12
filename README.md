@@ -1,26 +1,16 @@
-# 🌀 homebridge-roomb-o-matic
+# Homebridge Roomb-O-Matic
 
-Roomba Homebridge plugin reimagined with O‑Matic Factory magic.  
-🚀 **True vacuum semantics, future-ready design, and brand-driven clarity.**
-
----
-
-## 💡 What is this?
-
-`homebridge-roomb-o-matic` is a new, fully reimagined plugin to control your iRobot Roomba via Homebridge. It presents your Roomba as a proper vacuum accessory (via Fanv2 workaround) in HomeKit, while preparing for future Matter vacuum support.
-
-- Designed by **James Walker** at **O‑Matic Factory**.
-- Full TypeScript, minimal dependencies.
-- Cleaner code, future-proof foundation.
+The O‑Matic Factory–engineered Homebridge plugin to connect iRobot Roomba vacuums as **vacuum accessories** in HomeKit (instead of fans). Future-proofed for Matter semantics and clean TypeScript design.
 
 ---
 
 ## ✨ Features
 
-- ✅ Exposes Roomba as a vacuum (Fanv2 workaround).
-- ✅ Start, stop, and status reporting.
-- ✅ Prepares for upcoming native vacuum semantics in HomeKit and Matter.
-- ✅ Fully branded and managed by O‑Matic Factory.
+- ✅ Exposes as a vacuum accessory (using `Fanv2` workaround until full support lands).
+- ✅ Clean start/stop controls.
+- ✅ Future-ready design for Matter vacuum semantics.
+- ✅ Cleaner code, modern TypeScript, minimal dependencies.
+- ✅ O‑Matic Factory brand governance, Spec 5 aligned.
 
 ---
 
@@ -28,3 +18,47 @@ Roomba Homebridge plugin reimagined with O‑Matic Factory magic.
 
 ```bash
 sudo npm install -g homebridge-roomb-o-matic
+
+
+⸻
+
+🛠 Configuration
+
+In your Homebridge config.json:
+
+{
+  "platform": "RoombOMatic",
+  "name": "Roomba",
+  "email": "your-irobot-email",
+  "password": "your-irobot-password",
+  "devices": [
+    {
+      "blid": "your-blid",
+      "ip": "192.168.1.x",
+      "name": "Living Room Roomba"
+    }
+  ]
+}
+
+
+⸻
+
+🗺 Roadmap
+	•	Add explicit battery service.
+	•	Add contact/obstacle sensors.
+	•	Prepare Matter bridging logic (for future).
+
+⸻
+
+🤝 Credits
+
+Originally inspired by homebridge-roomba and dorita980.
+Reimagined and rebuilt under O‑Matic Factory brand standards by James Walker.
+Spec 5 aligned, Closed Factory security, joyful code design.
+
+⸻
+
+💬 Support
+
+
+
