@@ -1,9 +1,10 @@
 /* src/settings.ts */
 
 export interface DeviceConfig {
-  blid: string;
-  ip?: string;
+   blid: string;
   name: string;
+  robotpwd: string;
+  ipaddress: string;
 }
 
 export interface RoombaPlatformConfig {
