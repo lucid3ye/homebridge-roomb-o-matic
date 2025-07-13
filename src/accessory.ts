@@ -7,7 +7,7 @@
  */
 
 import type { AccessoryPlugin, API, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue, Logging, PlatformAccessory, Service } from 'homebridge';
-import type RoombaPlatform from './platform.js';
+import type { RoombaPlatform } from './platform.js';
 import type { DeviceConfig, RoombaPlatformConfig } from './settings.js';
 import type { Robot } from './roomba.js';
 
@@ -37,8 +37,7 @@ export default class RoombaAccessory implements AccessoryPlugin {
     const Characteristic = api.hap.Characteristic;
 
     this.switchService =
-      accessory.getService(Service.Fanv2, device.name)
-      ?? accessory.addService(Service.Fanv2, device.name);
+      accessory.getService(Service.Fanv2) ?? accessory.addService(Service.Fanv2, device.name);
     this.switchService.setPrimaryService(true);
 
     // Remove old Switch if present
