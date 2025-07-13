@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@homebridge/plugin-ui-utils": "^2.0.1",
-    "dorita980": "^3.2.1"
+    "dorita980": "^2.5.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.4.0",
