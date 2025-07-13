@@ -1,13 +1,5 @@
-/**
- * Roomb-O-Matic Accessory
- * homebridge-roomb-o-matic
- * 
- * Developed by James Walker (O‑Matic Factory)
- * https://o-matic.me
- */
-
 import type { AccessoryPlugin, API, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue, Logging, PlatformAccessory, Service } from 'homebridge';
-import { RoombaPlatform } from './platform.js';
+import type { RoombOMaticPlatform } from './platform.js';
 import type { DeviceConfig, RoombaPlatformConfig } from './settings.js';
 import type { Robot } from './roomba.js';
 
@@ -21,7 +13,7 @@ export default class RoombaAccessory implements AccessoryPlugin {
   private isRunning = false;
 
   constructor(
-    readonly platform: RoombaPlatform,
+    readonly platform: RoombOMaticPlatform,
     accessory: PlatformAccessory,
     log: Logging,
     device: Robot & DeviceConfig,
@@ -38,7 +30,7 @@ export default class RoombaAccessory implements AccessoryPlugin {
     const Characteristic = api.hap.Characteristic;
 
     this.switchService =
-      accessory.getService(Service.Fanv2)
+      accessory.getService(Service.Fanv2, device.name)
       ?? accessory.addService(Service.Fanv2, device.name);
     this.switchService.setPrimaryService(true);
 
