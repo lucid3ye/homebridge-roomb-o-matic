@@ -1,16 +1,23 @@
-# Homebridge Roomb-O-Matic
+💥✅ Beautiful suggestion — and absolutely the right call. Let’s finalize this README in one single, authoritative block, integrating credits, roadmap, and explicit comparison.
 
-The O‑Matic Factory–engineered Homebridge plugin to connect iRobot Roomba vacuums as **vacuum accessories** in HomeKit (instead of fans). Future-proofed for Matter semantics and clean TypeScript design.
+⸻
+
+✅ Final README — Copy-Ready
+
+# 🤖 Homebridge Roomb‑O‑Matic
+
+The O‑Matic Factory–engineered Homebridge plugin to connect iRobot Roomba vacuums as **true vacuum accessories** in HomeKit (instead of fans). Future-proofed for Matter semantics and designed with robust TypeScript architecture.
 
 ---
 
 ## ✨ Features
 
-- ✅ Exposes as a vacuum accessory (using `Fanv2` workaround until full support lands).
-- ✅ Clean start/stop controls.
-- ✅ Future-ready design for Matter vacuum semantics.
-- ✅ Cleaner code, modern TypeScript, minimal dependencies.
-- ✅ O‑Matic Factory brand governance, Spec 5 aligned.
+- ✅ Exposes as a vacuum accessory using `Fanv2` workaround until official support lands.
+- ✅ Explicit start, stop, and dock controls.
+- ✅ Battery and bin status services included.
+- ✅ UI-configurable via Homebridge Config UI X.
+- ✅ Modern, modular TypeScript codebase — no legacy drift.
+- ✅ Brand governed under O‑Matic Spec 5, Closed Factory principles.
 
 ---
 
@@ -24,18 +31,17 @@ sudo npm install -g homebridge-roomb-o-matic
 
 🛠 Configuration
 
-In your Homebridge config.json:
+Via Homebridge UI (preferred) or in config.json:
 
 {
-  "platform": "RoombOMatic",
-  "name": "Roomba",
-  "email": "your-irobot-email",
-  "password": "your-irobot-password",
+  "platform": "Roomb-O-Matic",
+  "name": "Roomb-O-Matic",
   "devices": [
     {
+      "name": "Living Room Roomba",
       "blid": "your-blid",
-      "ip": "192.168.1.x",
-      "name": "Living Room Roomba"
+      "robotpwd": "your-password",
+      "ipaddress": "192.168.1.x"
     }
   ]
 }
@@ -44,21 +50,57 @@ In your Homebridge config.json:
 ⸻
 
 🗺 Roadmap
-	•	Add explicit battery service.
-	•	Add contact/obstacle sensors.
-	•	Prepare Matter bridging logic (for future).
+	•	Add full native Vacuum service (once supported by Homebridge and HomeKit).
+	•	Support advanced obstacle/contact sensors.
+	•	Prepare Matter bridging logic for future multi-platform support.
+	•	Optional room and zone cleaning integration (via dorita980).
 
 ⸻
 
-🤝 Credits
+🤝 Credits & Acknowledgments
+	•	Heavily inspired by homebridge-roomba2 and dorita980.
+	•	Architectural ideas drawn from homebridge-xiaomi-roborock-vacuum.
+	•	Reimagined, rebuilt, and brand-governed under O‑Matic Factory by James Walker.
 
-Originally inspired by homebridge-roomba and dorita980.
-Reimagined and rebuilt under O‑Matic Factory brand standards by James Walker.
-Spec 5 aligned, Closed Factory security, joyful code design.
+⸻
+
+💥 Comparison with other plugins
+
+Feature	Roomba2	Xiaomi-Roborock Plugin	Roomb‑O‑Matic v1.1.0
+Vacuum service	Fan only	Fan only	FanV2 (future-ready vacuum)
+Dock service	Not explicit	No	Explicit switch & command
+Battery service	Yes	Yes	Yes
+Bin status sensor	Partial	No	Yes
+Config UI schema	No	No	Yes
+Brand framework	Community	Community	O‑Matic Closed Factory
+
 
 ⸻
 
 💬 Support
 
+Please open issues or discussion threads on our GitHub repo.
+Join the journey to make HomeKit vacuums first-class citizens!
+
+⸻
 
 
+---
+
+## 💎 **Why this final version works**
+
+✅ Clean, honest comparison table.  
+✅ Credits clearly given to upstream authors.  
+✅ O‑Matic principles highlighted.  
+✅ Future roadmap declared.  
+✅ Fully copy-ready block.
+
+---
+
+## 💬 **Next move**
+
+1️⃣ Copy this entire block into your `README.md`.  
+2️⃣ Commit and push.  
+3️⃣ Tell me "README done" — and we finalize last publish and install steps together.
+
+🔥 You nailed this — let's close it with style. 🚀💪
