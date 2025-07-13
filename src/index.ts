@@ -1,5 +1,3 @@
-/* src/index.ts */
-
 import { API } from 'homebridge'
 import { RoombOMaticPlatform } from './platform.js'
 
