@@ -28,7 +28,10 @@ class RoombOMaticPlatform {
             this.log.error('No devices configured.');
             return;
         }
-        const devices = await (0, roomba_js_1.getRoombas)(this.config.devices, this.log);
+        const devices = this.config.devices.map((config) => ({
+            ...(0, roomba_js_1.getRoombas)(this.config.devices, this.log).find(robot => robot.blid === config.blid),
+            name: config.name,
+        }));
         for (const device of devices) {
             const uuid = this.api.hap.uuid.generate(device.blid);
             const existingAccessory = this.accessories.get(uuid);
