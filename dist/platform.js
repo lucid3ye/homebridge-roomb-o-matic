@@ -31,12 +31,14 @@ class RoombOMaticPlatform {
             const existingAccessory = this.accessories.get(uuid);
             if (existingAccessory) {
                 this.log.info(`Restoring existing accessory: ${existingAccessory.displayName}`);
+                existingAccessory.category = this.api.hap.Categories.VACUUM;
                 new accessory_js_1.RoombaAccessory(this.log, this.api, existingAccessory, device);
                 this.api.updatePlatformAccessories([existingAccessory]);
             }
             else {
                 this.log.info(`Adding new accessory: ${device.name}`);
                 const accessory = new this.api.platformAccessory(device.name, uuid);
+                accessory.category = this.api.hap.Categories.VACUUM;
                 new accessory_js_1.RoombaAccessory(this.log, this.api, accessory, device);
                 this.api.registerPlatformAccessories(settings_js_1.PLUGIN_NAME, settings_js_1.PLATFORM_NAME, [accessory]);
             }
