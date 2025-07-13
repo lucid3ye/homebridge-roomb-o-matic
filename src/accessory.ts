@@ -1,37 +1,38 @@
-import { Service, CharacteristicValue, API, Logging } from 'homebridge';
-import { RoombOMaticPlatform } from './platform.js';
-import { Discovery, Robot } from '@karlvr/dorita980';  // or your actual import
+import { API, Service, CharacteristicValue, Logging, PlatformAccessory } from 'homebridge';
+import { Local, Discovery, Robot } from '@karlvr/dorita980';
+import type { DeviceConfig } from './settings.js';
 
 export class RoombaAccessory {
+  private services: Service[];
   private vacuumService: Service;
   private dockService: Service;
   private batteryService: Service;
   private binSensorService: Service;
+  private robot: Robot;
 
   constructor(
     private readonly log: Logging,
     private readonly api: API,
-    private robot: Robot,
-    private readonly name: string,
+    private readonly accessory: PlatformAccessory,
+    private readonly device: Robot & DeviceConfig
   ) {
-    // Vacuum Service
-    this.vacuumService = new this.api.hap.Service.Fanv2(this.name, 'vacuum');
+    const { blid, robotpwd, ipaddress, name } = device;
+    this.robot = new Local(blid, robotpwd, ipaddress);
+
+    this.vacuumService = new this.api.hap.Service.Fanv2(name, 'vacuum');
     this.vacuumService
       .getCharacteristic(this.api.hap.Characteristic.Active)
       .onSet(this.handleActiveSet.bind(this));
 
-    // Dock Switch
-    this.dockService = new this.api.hap.Service.Switch(`${this.name} Dock`, 'dock');
+    this.dockService = new this.api.hap.Service.Switch(`${name} Dock`, 'dock');
     this.dockService
       .getCharacteristic(this.api.hap.Characteristic.On)
       .onSet(this.handleDockSet.bind(this));
 
-    // Battery
-    this.batteryService = new this.api.hap.Service.Battery(this.name, 'battery');
+    this.batteryService = new this.api.hap.Service.Battery(name, 'battery');
     this.updateBattery();
 
-    // Bin Sensor
-    this.binSensorService = new this.api.hap.Service.ContactSensor(`${this.name} Bin`, 'bin');
+    this.binSensorService = new this.api.hap.Service.ContactSensor(`${name} Bin`, 'bin');
     this.updateBinStatus();
 
     this.services = [
@@ -44,17 +45,17 @@ export class RoombaAccessory {
 
   async handleActiveSet(value: CharacteristicValue) {
     if (value) {
-      this.log.info(`${this.name}: Starting cleaning`);
+      this.log.info(`${this.device.name}: Starting cleaning`);
       await this.robot.start();
     } else {
-      this.log.info(`${this.name}: Stopping cleaning`);
+      this.log.info(`${this.device.name}: Stopping cleaning`);
       await this.robot.stop();
     }
   }
 
   async handleDockSet(value: CharacteristicValue) {
     if (value) {
-      this.log.info(`${this.name}: Sending to dock`);
+      this.log.info(`${this.device.name}: Sending to dock`);
       await this.robot.dock();
     }
   }
@@ -64,19 +65,25 @@ export class RoombaAccessory {
     this.batteryService
       .setCharacteristic(this.api.hap.Characteristic.BatteryLevel, status.battery);
     this.batteryService
-      .setCharacteristic(this.api.hap.Characteristic.ChargingState,
-        status.charging ? this.api.hap.Characteristic.ChargingState.CHARGING : this.api.hap.Characteristic.ChargingState.NOT_CHARGING);
+      .setCharacteristic(
+        this.api.hap.Characteristic.ChargingState,
+        status.charging ? this.api.hap.Characteristic.ChargingState.CHARGING
+                        : this.api.hap.Characteristic.ChargingState.NOT_CHARGING
+      );
   }
 
   private async updateBinStatus() {
     const status = await this.robot.getStatus();
-    const binFull = status.binFull; // adjust based on actual property
+    const binFull = status.binFull ?? false;
     this.binSensorService
-      .setCharacteristic(this.api.hap.Characteristic.ContactSensorState,
-        binFull ? this.api.hap.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED : this.api.hap.Characteristic.ContactSensorState.CONTACT_DETECTED);
+      .setCharacteristic(
+        this.api.hap.Characteristic.ContactSensorState,
+        binFull ? this.api.hap.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
+                : this.api.hap.Characteristic.ContactSensorState.CONTACT_DETECTED
+      );
   }
 
-  getServices() {
+  getServices(): Service[] {
     return this.services;
   }
 }
