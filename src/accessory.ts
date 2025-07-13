@@ -7,7 +7,6 @@
  */
 
 import type { AccessoryPlugin, API, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue, Logging, PlatformAccessory, Service } from 'homebridge';
-import type { RoombaPlatform } from './platform.js';
 import type { DeviceConfig, RoombaPlatformConfig } from './settings.js';
 import type { Robot } from './roomba.js';
 
