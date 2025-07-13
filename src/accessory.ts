@@ -13,7 +13,7 @@ import type { Robot } from './roomba.js';
 
 const CONNECT_TIMEOUT_MILLIS = 60_000;
 
-export class RoombaAccessory implements AccessoryPlugin {
+export default class RoombaAccessory implements AccessoryPlugin {
   private switchService: Service;
   private batteryService?: Service;
   private log: Logging;
@@ -39,7 +39,7 @@ export class RoombaAccessory implements AccessoryPlugin {
 
     this.switchService =
       accessory.getService(Service.Fanv2)
-      ?? accessory.addService(Service.Fanv2);
+      ?? accessory.addService(Service.Fanv2, device.name);
     this.switchService.setPrimaryService(true);
 
     // Remove old Switch if present
@@ -75,10 +75,12 @@ export class RoombaAccessory implements AccessoryPlugin {
   }
 
   async startCleaning() {
+    // Connect and start Roomba (e.g., dorita980 local command)
     this.log.info('Starting Roomba (placeholder)');
   }
 
   async stopCleaning() {
+    // Connect and stop/dock Roomba
     this.log.info('Stopping Roomba (placeholder)');
   }
 
