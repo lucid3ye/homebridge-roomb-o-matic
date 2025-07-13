@@ -11,7 +11,6 @@ import type RoombaPlatform from './platform.js';
 import type { DeviceConfig, RoombaPlatformConfig } from './settings.js';
 import type { Robot } from './roomba.js';
 
-const CONNECT_TIMEOUT_MILLIS = 60_000;
 
 export default class RoombaAccessory implements AccessoryPlugin {
   private switchService: Service;
