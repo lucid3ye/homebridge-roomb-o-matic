@@ -1,35 +1,59 @@
-## 🚨 Release Notes
 
-### v1.1.3 — Stability & Full State Support (July 2025)
+# 🤖 Homebridge Roomb‑O‑Matic
 
-- ✅ Replaced legacy `getStatus` calls with correct `getRobotState` from dorita980, enabling full compatibility with modern Roomba models.
-- ✅ Battery level and charging state now report accurately using `batPct` and `cleanMissionStatus.phase`.
-- ✅ Bin full sensor now works reliably using `bin.full`.
-- ✅ Added periodic state polling every 60 seconds for live HomeKit updates without crashing.
-- ✅ Major internal refactor: added robust error handling throughout to prevent Homebridge crash loops.
-- ✅ Reduced drift, cleaned up legacy logic, and aligned with modern dorita980 semantics.
-
-**Why so many releases today?**  
-This rapid sequence was required to fix deep legacy API assumptions and to close out final runtime errors. v1.1.3 is the final stable build in this rapid series — we recommend all users upgrade immediately.
+The O‑Matic Factory–engineered Homebridge plugin to connect iRobot Roomba vacuums as **true vacuum accessories** in HomeKit. Future-proofed for Matter semantics and designed with robust TypeScript architecture.
 
 ---
 
-## 🔑 How to get your BLID and Password
+## ✨ Features
 
-To connect your Roomba, you need two pieces of information:
+- ✅ Exposes as a classic Fan service (shows tiles in Home app today).
+- ✅ Hybrid model support: works with advanced (`getRobotState`) and local-only (`getStatus`) Roombas.
+- ✅ Explicit dock control with a dedicated switch.
+- ✅ Battery level and bin status included.
+- ✅ UI-configurable via Homebridge Config UI X.
+- ✅ O‑Matic Factory brand governance and Spec 5 alignment.
 
-1️⃣ **BLID (Robot ID)**  
-2️⃣ **Robot Password**
+---
 
-### 📄 Quick steps (dorita980 method)
+## ⚡ Installation
 
 ```bash
+sudo npm install -g homebridge-roomb-o-matic
+
+
+⸻
+
+🛠 Configuration
+
+Recommended: Use Homebridge UI to configure (Config UI X).
+
+Or manually in config.json:
+
+{
+  "platform": "Roomb-O-Matic",
+  "name": "Roomb-O-Matic",
+  "devices": [
+    {
+      "name": "Living Room Roomba",
+      "blid": "your-blid",
+      "robotpwd": "your-password",
+      "ipaddress": "192.168.1.x"
+    }
+  ]
+}
+
+
+⸻
+
+🔑 How to get your BLID & password
+
 npm install -g dorita980
-cd ~/ && mkdir roomba-get-password && cd roomba-get-password
+cd ~ && mkdir roomba-get-password && cd roomba-get-password
 npm init -y
 npm install dorita980
 
-Then create a file called get-password.js:
+Create a file get-password.js:
 
 const dorita980 = require('dorita980');
 
@@ -41,14 +65,31 @@ dorita980.getRobotPublicInfo((i) => {
   }).catch(console.error);
 });
 
-Finally, run:
+Then run:
 
 node get-password.js
 
-Your BLID and password will be printed in the console. Use these in your Homebridge Roomb-O-Matic configuration.
+
+⸻
+
+🗺 Roadmap
+	•	Add support for advanced mission controls (room zones).
+	•	Prepare native Vacuum service when Homebridge/HAP supports it.
+	•	Integrate Matter support once Roomba firmware supports Matter 1.2.
+
+⸻
+
+🚨 v1.1.5 Release Notes
+	•	✅ Classic Fan service for Home app tile visibility.
+	•	✅ Hybrid support for both local-only and advanced Roombas.
+	•	✅ Explicit dock switch added.
+	•	✅ Improved state polling logic (hybrid detection).
+	•	✅ Set proper accessory category to Vacuum for future-proofing.
+	•	✅ Updated logs and error handling.
 
 ⸻
 
 💬 Support
 
-Please open issues or discussions on our GitHub repository if you have questions or run into any problems. Join us on this journey to make HomeKit vacuums first-class citizens — the O‑Matic way!
+Please open issues or discussions on GitHub if you run into trouble — or if you’d like to help shape future advanced features!
+
