@@ -1,92 +1,82 @@
-/**
- * Roomb-O-Matic Accessory
- * homebridge-roomb-o-matic
- * 
- * Developed by James Walker (O‑Matic Factory)
- * https://o-matic.me
- */
+import { Service, CharacteristicValue, API, Logging } from 'homebridge';
+import { RoombOMaticPlatform } from './platform.js';
+import { Discovery, Robot } from '@karlvr/dorita980';  // or your actual import
 
-import type { AccessoryPlugin, API, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue, Logging, PlatformAccessory, Service } from 'homebridge';
-import type { RoombOMaticPlatform } from './platform.js';
-import type { DeviceConfig, RoombaPlatformConfig } from './settings.js';
-import type { Robot } from './roomba.js';
-
-const CONNECT_TIMEOUT_MILLIS = 60_000;
-
-export default class RoombaAccessory implements AccessoryPlugin {
-  private switchService: Service;
-  private batteryService?: Service;
-  private log: Logging;
-  private api: API;
-  private isRunning = false;
+export class RoombaAccessory {
+  private vacuumService: Service;
+  private dockService: Service;
+  private batteryService: Service;
+  private binSensorService: Service;
 
   constructor(
-    readonly platform: RoombOMaticPlatform,
-    accessory: PlatformAccessory,
-    log: Logging,
-    device: Robot & DeviceConfig,
-    config: RoombaPlatformConfig,
-    api: API,
+    private readonly log: Logging,
+    private readonly api: API,
+    private robot: Robot,
+    private readonly name: string,
   ) {
-    this.api = api;
-    this.log = log;
+    // Vacuum Service
+    this.vacuumService = new this.api.hap.Service.Fanv2(this.name, 'vacuum');
+    this.vacuumService
+      .getCharacteristic(this.api.hap.Characteristic.Active)
+      .onSet(this.handleActiveSet.bind(this));
 
-    // Show as a Fan in HomeKit (current workaround for vacuums)
-    accessory.category = this.api.hap.Categories.FAN;
+    // Dock Switch
+    this.dockService = new this.api.hap.Service.Switch(`${this.name} Dock`, 'dock');
+    this.dockService
+      .getCharacteristic(this.api.hap.Characteristic.On)
+      .onSet(this.handleDockSet.bind(this));
 
-    const Service = api.hap.Service;
-    const Characteristic = api.hap.Characteristic;
+    // Battery
+    this.batteryService = new this.api.hap.Service.Battery(this.name, 'battery');
+    this.updateBattery();
 
-    this.switchService =
-      accessory.getService(Service.Fanv2)
-      ?? accessory.addService(Service.Fanv2, device.name);
-    this.switchService.setPrimaryService(true);
+    // Bin Sensor
+    this.binSensorService = new this.api.hap.Service.ContactSensor(`${this.name} Bin`, 'bin');
+    this.updateBinStatus();
 
-    // Remove old Switch if present
-    const oldSwitch = accessory.getService(Service.Switch);
-    if (oldSwitch) accessory.removeService(oldSwitch);
-
-    this.switchService
-      .getCharacteristic(Characteristic.Active)
-      .on('set', (value: CharacteristicValue, cb: CharacteristicSetCallback) => {
-        const start = value === Characteristic.Active.ACTIVE;
-        this.setRunningState(start, cb);
-      })
-      .on('get', (cb: CharacteristicGetCallback) => {
-        cb(null, this.isRunning ? Characteristic.Active.ACTIVE : Characteristic.Active.INACTIVE);
-      });
-
-    // (Optional) Setup battery service and other care services here later
+    this.services = [
+      this.vacuumService,
+      this.dockService,
+      this.batteryService,
+      this.binSensorService,
+    ];
   }
 
-  async setRunningState(start: boolean, cb: CharacteristicSetCallback) {
-    try {
-      if (start) {
-        await this.startCleaning();
-        this.isRunning = true;
-      } else {
-        await this.stopCleaning();
-        this.isRunning = false;
-      }
-      cb(null, this.isRunning ? 1 : 0);
-    } catch (err: any) {
-      cb(err);
+  async handleActiveSet(value: CharacteristicValue) {
+    if (value) {
+      this.log.info(`${this.name}: Starting cleaning`);
+      await this.robot.start();
+    } else {
+      this.log.info(`${this.name}: Stopping cleaning`);
+      await this.robot.stop();
     }
   }
 
-  async startCleaning() {
-    // Connect and start Roomba (e.g., dorita980 local command)
-    this.log.info('Starting Roomba (placeholder)');
+  async handleDockSet(value: CharacteristicValue) {
+    if (value) {
+      this.log.info(`${this.name}: Sending to dock`);
+      await this.robot.dock();
+    }
   }
 
-  async stopCleaning() {
-    // Connect and stop/dock Roomba
-    this.log.info('Stopping Roomba (placeholder)');
+  private async updateBattery() {
+    const status = await this.robot.getStatus();
+    this.batteryService
+      .setCharacteristic(this.api.hap.Characteristic.BatteryLevel, status.battery);
+    this.batteryService
+      .setCharacteristic(this.api.hap.Characteristic.ChargingState,
+        status.charging ? this.api.hap.Characteristic.ChargingState.CHARGING : this.api.hap.Characteristic.ChargingState.NOT_CHARGING);
   }
 
-  getServices(): Service[] {
-    const services: Service[] = [this.switchService];
-    if (this.batteryService) services.push(this.batteryService);
-    return services;
+  private async updateBinStatus() {
+    const status = await this.robot.getStatus();
+    const binFull = status.binFull; // adjust based on actual property
+    this.binSensorService
+      .setCharacteristic(this.api.hap.Characteristic.ContactSensorState,
+        binFull ? this.api.hap.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED : this.api.hap.Characteristic.ContactSensorState.CONTACT_DETECTED);
+  }
+
+  getServices() {
+    return this.services;
   }
 }
