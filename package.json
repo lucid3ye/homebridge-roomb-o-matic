@@ -23,7 +23,7 @@
     "roomb-o-matic"
   ],
   "main": "./dist/index.js",
-  "type": "module",
+  "type": "commonjs",
   "engines": {
     "homebridge": "^1.9.0 || ^2.0.0",
     "node": "^20 || ^22"
