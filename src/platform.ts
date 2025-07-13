@@ -36,7 +36,7 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
       return
     }
 
-    const devices: (Robot & DeviceConfig)[] = await getRoombas(this.config.devices, this.log)
+    const devices: Robot[] = await getRoombas(this.config.devices, this.log)
 
     for (const device of devices) {
       const uuid = this.api.hap.uuid.generate(device.blid)
