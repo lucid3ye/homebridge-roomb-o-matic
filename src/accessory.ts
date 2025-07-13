@@ -8,6 +8,11 @@
 
 import type { AccessoryPlugin, API, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue, Logging, PlatformAccessory, Service } from 'homebridge';
 import type { DeviceConfig, RoombaPlatformConfig } from './settings.js';
+// Import RoombaPlatform from its correct module or define it if missing
+// If the file is actually named 'roombaPlatform.ts', update the import to:
+
+// Or, if the file is in a different folder, adjust the path accordingly, e.g.:
+// import type { RoombaPlatform } from './platform/roombaPlatform';
 import type { Robot } from './roomba.js';
 
 
@@ -19,7 +24,7 @@ export default class RoombaAccessory implements AccessoryPlugin {
   private isRunning = false;
 
   constructor(
-    readonly platform: RoombaPlatform,
+    readonly platform: any,
     accessory: PlatformAccessory,
     log: Logging,
     device: Robot & DeviceConfig,

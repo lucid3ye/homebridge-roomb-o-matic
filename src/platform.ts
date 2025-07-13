@@ -2,11 +2,7 @@
 
 import type { API, Characteristic, DynamicPlatformPlugin, Logging, PlatformAccessory, Service } from 'homebridge'
 
-export interface Robot {
-  blid: string;
-  name: string;
-  // add any other properties as needed
-}
+import type { Robot } from './roomba.js'
 import type { DeviceConfig } from './settings.js'
 import { getRoombas } from './roomba.js'
 import RoombaAccessory from './accessory.js'
