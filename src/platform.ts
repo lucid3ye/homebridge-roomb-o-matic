@@ -1,10 +1,11 @@
 /* src/platform.ts */
 
 import type { API, Characteristic, DynamicPlatformPlugin, Logging, PlatformAccessory, Service } from 'homebridge';
+import { PLUGIN_NAME, PLATFORM_NAME } from './settings.js';
 import type { Robot } from './roomba.js';
 import type { DeviceConfig } from './settings.js';
 import { getRoombas } from './roomba.js';
-import RoombaAccessory from './accessory.js';
+import { RoombaAccessory } from './accessory.js';
 
 export class RoombOMaticPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service;
@@ -25,7 +26,7 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
   }
 
   configureAccessory(accessory: PlatformAccessory): void {
-    this.log(`Configuring cached accessory: ${accessory.displayName}`);
+    this.log.info(`Configuring cached accessory: ${accessory.displayName}`);
     this.accessories.set(accessory.UUID, accessory);
   }
 
@@ -43,13 +44,13 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
 
       if (existingAccessory) {
         this.log.info(`Restoring existing accessory: ${existingAccessory.displayName}`);
-        new RoombaAccessory(this, existingAccessory, this.log, device, this.config, this.api);
+        new RoombaAccessory(this.log, this.api, existingAccessory, device);
         this.api.updatePlatformAccessories([existingAccessory]);
       } else {
         this.log.info(`Adding new accessory: ${device.name}`);
         const accessory = new this.api.platformAccessory(device.name, uuid);
-        new RoombaAccessory(this, accessory, this.log, device, this.config, this.api);
-        this.api.registerPlatformAccessories('homebridge-roomb-o-matic', 'RoombOMatic', [accessory]);
+        new RoombaAccessory(this.log, this.api, accessory, device);
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }
     }
   }
