@@ -1,34 +1,15 @@
-{
-  "pluginAlias": "Roomb-O-Matic",
-  "pluginType": "platform",
-  "schema": {
-    "type": "object",
-    "properties": {
-      "platform": {
-        "type": "string",
-        "default": "Roomb-O-Matic",
-        "readonly": true
-      },
-      "name": {
-        "type": "string",
-        "title": "Plugin Name",
-        "default": "Roomb-O-Matic"
-      },
-      "devices": {
-        "type": "array",
-        "title": "Roomba Devices",
-        "items": {
-          "type": "object",
-          "properties": {
-            "name": { "type": "string", "title": "Robot Name" },
-            "blid": { "type": "string", "title": "BLID" },
-            "robotpwd": { "type": "string", "title": "Robot Password" },
-            "ipaddress": { "type": "string", "title": "IP Address" }
-          },
-          "required": ["name", "blid", "robotpwd", "ipaddress"]
-        }
-      }
-    },
-    "required": ["platform", "devices"]
+import { API } from 'homebridge';
+
+export class RoombOMaticPlatform {
+  private api: API;
+
+  constructor(api: API) {
+    this.api = api;
+  }
+
+  someMethod() {
+    // Example usage
+    const category = this.api.hap.Categories.OTHER;
+    // ... rest of the code
   }
 }
