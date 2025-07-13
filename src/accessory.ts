@@ -61,20 +61,22 @@ export class RoombaAccessory {
   }
 
   private async updateBattery() {
-    const status = await this.robot.getStatus();
+    const status = await this.robot.getRobotState(['batPct', 'cleanMissionStatus']);
     this.batteryService
-      .setCharacteristic(this.api.hap.Characteristic.BatteryLevel, status.battery);
+      .setCharacteristic(this.api.hap.Characteristic.BatteryLevel, status.batPct);
+
     this.batteryService
       .setCharacteristic(
         this.api.hap.Characteristic.ChargingState,
-        status.charging ? this.api.hap.Characteristic.ChargingState.CHARGING
-                        : this.api.hap.Characteristic.ChargingState.NOT_CHARGING
+        status.cleanMissionStatus && status.cleanMissionStatus.phase === 'charge'
+          ? this.api.hap.Characteristic.ChargingState.CHARGING
+          : this.api.hap.Characteristic.ChargingState.NOT_CHARGING
       );
   }
 
   private async updateBinStatus() {
-    const status = await this.robot.getStatus();
-    const binFull = status.binFull ?? false;
+    const status = await this.robot.getRobotState(['bin']);
+    const binFull = status.bin && status.bin.full;
     this.binSensorService
       .setCharacteristic(
         this.api.hap.Characteristic.ContactSensorState,
