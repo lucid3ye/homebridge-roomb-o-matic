@@ -1,7 +1,7 @@
 {
   "name": "homebridge-roomb-o-matic",
   "displayName": "Roomb-O-Matic",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Roomba Homebridge plugin reimagined with O‑Matic Factory magic. True vacuum semantics, future-ready, brand-driven.",
   "author": "James Walker (O‑Matic Factory)",
   "license": "MIT",
