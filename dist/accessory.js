@@ -18,8 +18,7 @@ class RoombaAccessory {
         const Service = api.hap.Service;
         const Characteristic = api.hap.Characteristic;
         this.switchService =
-            accessory.getService(Service.Fanv2, device.name)
-                ?? accessory.addService(Service.Fanv2, device.name);
+            accessory.getService(Service.Fanv2) ?? accessory.addService(Service.Fanv2, device.name);
         this.switchService.setPrimaryService(true);
         // Remove old Switch if present
         const oldSwitch = accessory.getService(Service.Switch);
