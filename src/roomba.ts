@@ -11,6 +11,7 @@ export interface Robot {
   blid: string;
   password: string;
   ip?: string;
+  name: string; // Added to match DeviceConfig requirements
 }
 
 /**
