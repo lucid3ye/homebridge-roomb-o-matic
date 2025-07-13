@@ -1,5 +1,5 @@
 import { API, Service, CharacteristicValue, Logging, PlatformAccessory } from 'homebridge';
-import { Local, Discovery, Robot } from 'dorita980';
+import { Local } from 'dorita980';
 import type { DeviceConfig } from './settings.js';
 
 export class RoombaAccessory {
@@ -8,13 +8,13 @@ export class RoombaAccessory {
   private dockService: Service;
   private batteryService: Service;
   private binSensorService: Service;
-  private robot: Robot;
+  private robot: any;
 
   constructor(
     private readonly log: Logging,
     private readonly api: API,
     private readonly accessory: PlatformAccessory,
-    private readonly device: Robot & DeviceConfig
+    private readonly device: DeviceConfig
   ) {
     const { blid, robotpwd, ipaddress, name } = device;
     this.robot = new Local(blid, robotpwd, ipaddress);
