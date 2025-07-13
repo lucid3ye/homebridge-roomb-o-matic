@@ -61,28 +61,36 @@ export class RoombaAccessory {
   }
 
   private async updateBattery() {
-    const status = await this.robot.getRobotState(['batPct', 'cleanMissionStatus']);
-    this.batteryService
-      .setCharacteristic(this.api.hap.Characteristic.BatteryLevel, status.batPct);
+    try {
+      const status = await this.robot.getRobotState(['batPct', 'cleanMissionStatus']);
+      this.batteryService
+        .setCharacteristic(this.api.hap.Characteristic.BatteryLevel, status.batPct);
 
-    this.batteryService
-      .setCharacteristic(
-        this.api.hap.Characteristic.ChargingState,
-        status.cleanMissionStatus && status.cleanMissionStatus.phase === 'charge'
-          ? this.api.hap.Characteristic.ChargingState.CHARGING
-          : this.api.hap.Characteristic.ChargingState.NOT_CHARGING
-      );
+      this.batteryService
+        .setCharacteristic(
+          this.api.hap.Characteristic.ChargingState,
+          status.cleanMissionStatus && status.cleanMissionStatus.phase === 'charge'
+            ? this.api.hap.Characteristic.ChargingState.CHARGING
+            : this.api.hap.Characteristic.ChargingState.NOT_CHARGING
+        );
+    } catch (error) {
+      this.log.error(`${this.device.name}: Failed to update battery status — ${error}`);
+    }
   }
 
   private async updateBinStatus() {
-    const status = await this.robot.getRobotState(['bin']);
-    const binFull = status.bin && status.bin.full;
-    this.binSensorService
-      .setCharacteristic(
-        this.api.hap.Characteristic.ContactSensorState,
-        binFull ? this.api.hap.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
-                : this.api.hap.Characteristic.ContactSensorState.CONTACT_DETECTED
-      );
+    try {
+      const status = await this.robot.getRobotState(['bin']);
+      const binFull = status.bin && status.bin.full;
+      this.binSensorService
+        .setCharacteristic(
+          this.api.hap.Characteristic.ContactSensorState,
+          binFull ? this.api.hap.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
+                  : this.api.hap.Characteristic.ContactSensorState.CONTACT_DETECTED
+        );
+    } catch (error) {
+      this.log.error(`${this.device.name}: Failed to update bin status — ${error}`);
+    }
   }
 
   getServices(): Service[] {
