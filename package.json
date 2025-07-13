@@ -1,8 +1,7 @@
 {
   "name": "homebridge-roomb-o-matic",
   "displayName": "Roomb-O-Matic",
--  "version": "1.0.0",
-+  "version": "1.1.0",
+  "version": "1.1.0",
   "description": "Roomba Homebridge plugin reimagined with O‑Matic Factory magic. True vacuum semantics, future-ready, brand-driven.",
   "author": "James Walker (O‑Matic Factory)",
   "license": "MIT",
@@ -29,18 +28,38 @@
     "homebridge": "^1.9.0 || ^2.0.0",
     "node": "^20 || ^22"
   },
-  "config.schema": "./config.schema.json",     // ← Added: UI schema integration
+  "config.schema": "./config.schema.json",
   "scripts": {
-    ...
+    "check": "npm install && npm outdated",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "watch": "npm run build && npm link && nodemon",
+    "build": "npm run clean && tsc",
+    "prepublishOnly": "npm run lint && npm run build",
+    "postpublish": "npm run clean && npm ci",
+    "clean": "shx rm -rf ./dist",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test-coverage": "npm run test -- --coverage"
   },
   "dependencies": {
--    "@homebridge/plugin-ui-utils": "^2.0.1",
--    "dorita980": "npm:@karlvr/dorita980@3.2.1"
-+    "@homebridge/plugin-ui-utils": "^2.0.1",
-+    "dorita980": "^3.2.1"
+    "@homebridge/plugin-ui-utils": "^2.0.1",
+    "dorita980": "^3.2.1"
   },
   "devDependencies": {
-    ...
+    "@antfu/eslint-config": "^4.4.0",
+    "@types/debug": "^4.1.12",
+    "@types/node": "^22.13.6",
+    "@vitest/coverage-v8": "^3.0.7",
+    "eslint": "^9.21.0",
+    "eslint-plugin-format": "^1.0.1",
+    "homebridge": "^1.9.0",
+    "homebridge-config-ui-x": "4.71.2",
+    "nodemon": "^3.1.9",
+    "shx": "^0.3.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.7"
   },
   "publishConfig": {
     "access": "public",
