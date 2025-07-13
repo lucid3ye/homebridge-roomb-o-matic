@@ -7,13 +7,13 @@
  */
 
 import type { AccessoryPlugin, API, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue, Logging, PlatformAccessory, Service } from 'homebridge';
-import type RoombaPlatform from './platform.js';
+import { RoombaPlatform } from './platform.js';
 import type { DeviceConfig, RoombaPlatformConfig } from './settings.js';
 import type { Robot } from './roomba.js';
 
 const CONNECT_TIMEOUT_MILLIS = 60_000;
 
-export default class RoombaAccessory implements AccessoryPlugin {
+export class RoombaAccessory implements AccessoryPlugin {
   private switchService: Service;
   private batteryService?: Service;
   private log: Logging;
@@ -38,8 +38,8 @@ export default class RoombaAccessory implements AccessoryPlugin {
     const Characteristic = api.hap.Characteristic;
 
     this.switchService =
-      accessory.getService(Service.Fanv2, device.name)
-      ?? accessory.addService(Service.Fanv2, device.name);
+      accessory.getService(Service.Fanv2)
+      ?? accessory.addService(Service.Fanv2);
     this.switchService.setPrimaryService(true);
 
     // Remove old Switch if present
@@ -75,12 +75,10 @@ export default class RoombaAccessory implements AccessoryPlugin {
   }
 
   async startCleaning() {
-    // Connect and start Roomba (e.g., dorita980 local command)
     this.log.info('Starting Roomba (placeholder)');
   }
 
   async stopCleaning() {
-    // Connect and stop/dock Roomba
     this.log.info('Stopping Roomba (placeholder)');
   }
 
