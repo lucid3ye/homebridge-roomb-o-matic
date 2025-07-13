@@ -1,8 +1,8 @@
 {
   "name": "homebridge-roomb-o-matic",
   "displayName": "Roomb-O-Matic",
-  "version": "1.1.4",
-  "description": "Roomba Homebridge plugin reimagined with O‑Matic Factory magic. True vacuum semantics, future-ready, brand-driven.",
+  "version": "1.1.5",
+  "description": "Roomba Homebridge plugin reimagined with O‑Matic Factory magic. True vacuum semantics, hybrid local + advanced support, brand-driven.",
   "author": "James Walker (O‑Matic Factory)",
   "license": "MIT",
   "homepage": "https://github.com/lucid3ye/homebridge-roomb-o-matic#readme",
@@ -20,7 +20,9 @@
     "Roomba",
     "Vacuum",
     "O‑Matic",
-    "roomb-o-matic"
+    "roomb-o-matic",
+    "hybrid",
+    "local"
   ],
   "main": "./dist/index.js",
   "type": "commonjs",
@@ -44,7 +46,7 @@
   },
   "dependencies": {
     "@homebridge/plugin-ui-utils": "^2.0.1",
-    "dorita980": "2.5.1"
+    "dorita980": "^2.5.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^4.4.0",
