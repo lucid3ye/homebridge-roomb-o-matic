@@ -10,7 +10,7 @@ export class RoombaAccessory {
   private binSensorService: Service;
   private robot: any;
   private statePollInterval?: ReturnType<typeof setInterval>;
-  
+
   constructor(
     private readonly log: Logging,
     private readonly api: API,
@@ -46,8 +46,13 @@ export class RoombaAccessory {
       this.binSensorService,
     ];
 
-    // Start periodic state polling
-    this.initializeStatePolling();
+    // Check if advanced state polling is supported
+    if (typeof this.robot.getRobotState === 'function') {
+      this.log.info(`${this.device.name}: Advanced state polling enabled.`);
+      this.initializeStatePolling();
+    } else {
+      this.log.info(`${this.device.name}: State polling disabled (local-only model).`);
+    }
   }
 
   private async handleActiveSet(value: CharacteristicValue) {
