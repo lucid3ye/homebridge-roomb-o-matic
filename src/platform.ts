@@ -2,9 +2,7 @@
 
 import type { API, Characteristic, DynamicPlatformPlugin, Logging, PlatformAccessory, Service } from 'homebridge';
 import { PLUGIN_NAME, PLATFORM_NAME } from './settings.js';
-import type { Robot } from './roomba.js';
 import type { DeviceConfig } from './settings.js';
-import { getRoombas } from './roomba.js';
 import { RoombaAccessory } from './accessory.js';
 
 export class RoombOMaticPlatform implements DynamicPlatformPlugin {
@@ -36,7 +34,7 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
       return;
     }
 
-    const devices: (Robot & DeviceConfig)[] = await getRoombas(this.config.devices, this.log);
+    const devices: DeviceConfig[] = this.config.devices;
 
     for (const device of devices) {
       const uuid = this.api.hap.uuid.generate(device.blid);
