@@ -1,5 +1,5 @@
 import { API, Service, CharacteristicValue, Logging, PlatformAccessory } from 'homebridge';
-import { Local, Discovery, Robot } from '@karlvr/dorita980';
+import { Local, Discovery, Robot } from 'dorita980';
 import type { DeviceConfig } from './settings.js';
 
 export class RoombaAccessory {
