@@ -40,10 +40,14 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
       return
     }
 
-    const devices: (Robot & DeviceConfig)[] = this.config.devices.map((config: DeviceConfig) => ({
-      ...getRoombas(this.config.devices, this.log).find(robot => robot.blid === config.blid)!,
-      name: config.name,
-    }));
+    const robots = await getRoombas(this.config.devices, this.log);
+    const devices: (Robot & DeviceConfig)[] = this.config.devices.map((config: DeviceConfig) => {
+      const matchedRobot = robots.find((robot: Robot) => robot.blid === config.blid);
+      return {
+        ...matchedRobot!,
+        name: config.name,
+      };
+    });
 
     for (const device of devices) {
       const uuid = this.api.hap.uuid.generate(device.blid)
