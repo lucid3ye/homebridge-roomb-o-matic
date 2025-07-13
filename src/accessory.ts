@@ -20,10 +20,10 @@ export class RoombaAccessory {
     const { blid, robotpwd, ipaddress, name } = device;
     this.robot = new Local(blid, robotpwd, ipaddress);
 
-    // Vacuum control via Fanv2
-    this.vacuumService = new this.api.hap.Service.Fanv2(name, 'vacuum');
+    // Vacuum control via classic Fan (shows in Home app)
+    this.vacuumService = new this.api.hap.Service.Fan(name, 'vacuum');
     this.vacuumService
-      .getCharacteristic(this.api.hap.Characteristic.Active)
+      .getCharacteristic(this.api.hap.Characteristic.On)
       .onSet(this.handleActiveSet.bind(this));
 
     // Dock control via Switch
@@ -46,12 +46,15 @@ export class RoombaAccessory {
       this.binSensorService,
     ];
 
-    // Check if advanced state polling is supported
+    // Hybrid detection
     if (typeof this.robot.getRobotState === 'function') {
       this.log.info(`${this.device.name}: Advanced state polling enabled.`);
       this.initializeStatePolling();
+    } else if (typeof this.robot.getStatus === 'function') {
+      this.log.info(`${this.device.name}: Legacy state polling enabled.`);
+      this.initializeLegacyStatePolling();
     } else {
-      this.log.info(`${this.device.name}: State polling disabled (local-only model).`);
+      this.log.warn(`${this.device.name}: No state polling supported on this model.`);
     }
   }
 
@@ -81,43 +84,64 @@ export class RoombaAccessory {
   }
 
   private initializeStatePolling() {
-    this.fetchState();
-    this.statePollInterval = setInterval(() => this.fetchState(), 60_000);
+    this.fetchHybridState();
+    this.statePollInterval = setInterval(() => this.fetchHybridState(), 60_000);
   }
 
-  private async fetchState() {
+  private initializeLegacyStatePolling() {
+    this.fetchLegacyState();
+    this.statePollInterval = setInterval(() => this.fetchLegacyState(), 60_000);
+  }
+
+  private async fetchHybridState() {
     try {
       const state = await this.robot.getRobotState(['batPct', 'bin', 'cleanMissionStatus']);
       const battery = state.batPct;
       const charging = state.cleanMissionStatus?.phase === 'charge';
       const binFull = state.bin?.full ?? false;
 
-      this.batteryService
-        .setCharacteristic(this.api.hap.Characteristic.BatteryLevel, battery);
-      this.batteryService
-        .setCharacteristic(
-          this.api.hap.Characteristic.ChargingState,
-          charging
-            ? this.api.hap.Characteristic.ChargingState.CHARGING
-            : this.api.hap.Characteristic.ChargingState.NOT_CHARGING
-        );
-      this.binSensorService
-        .setCharacteristic(
-          this.api.hap.Characteristic.ContactSensorState,
-          binFull
-            ? this.api.hap.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
-            : this.api.hap.Characteristic.ContactSensorState.CONTACT_DETECTED
-        );
+      this.updateCharacteristics(battery, charging, binFull);
     } catch (err) {
-      this.log.error(`${this.device.name}: State fetch failed — ${err}`);
+      this.log.error(`${this.device.name}: Hybrid state fetch failed — ${err}`);
     }
+  }
+
+  private async fetchLegacyState() {
+    try {
+      const state = await this.robot.getStatus();
+      const battery = state.battery;
+      const charging = state.charging;
+      const binFull = state.binFull ?? false;
+
+      this.updateCharacteristics(battery, charging, binFull);
+    } catch (err) {
+      this.log.error(`${this.device.name}: Legacy state fetch failed — ${err}`);
+    }
+  }
+
+  private updateCharacteristics(battery: number, charging: boolean, binFull: boolean) {
+    this.batteryService
+      .setCharacteristic(this.api.hap.Characteristic.BatteryLevel, battery);
+    this.batteryService
+      .setCharacteristic(
+        this.api.hap.Characteristic.ChargingState,
+        charging
+          ? this.api.hap.Characteristic.ChargingState.CHARGING
+          : this.api.hap.Characteristic.ChargingState.NOT_CHARGING
+      );
+    this.binSensorService
+      .setCharacteristic(
+        this.api.hap.Characteristic.ContactSensorState,
+        binFull
+          ? this.api.hap.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
+          : this.api.hap.Characteristic.ContactSensorState.CONTACT_DETECTED
+      );
   }
 
   getServices(): Service[] {
     return this.services;
   }
 
-  // Clean up timers when accessory is removed
   public dispose() {
     if (this.statePollInterval) {
       clearInterval(this.statePollInterval);
