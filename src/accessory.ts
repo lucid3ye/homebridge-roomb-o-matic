@@ -9,6 +9,7 @@ export class RoombaAccessory {
   private batteryService: Service;
   private binSensorService: Service;
   private robot: any;
+  private statePollInterval?: NodeJS.Timer;
 
   constructor(
     private readonly log: Logging,
@@ -19,81 +20,103 @@ export class RoombaAccessory {
     const { blid, robotpwd, ipaddress, name } = device;
     this.robot = new Local(blid, robotpwd, ipaddress);
 
+    // Vacuum control via Fanv2
     this.vacuumService = new this.api.hap.Service.Fanv2(name, 'vacuum');
     this.vacuumService
       .getCharacteristic(this.api.hap.Characteristic.Active)
       .onSet(this.handleActiveSet.bind(this));
 
+    // Dock control via Switch
     this.dockService = new this.api.hap.Service.Switch(`${name} Dock`, 'dock');
     this.dockService
       .getCharacteristic(this.api.hap.Characteristic.On)
       .onSet(this.handleDockSet.bind(this));
 
+    // Battery service
     this.batteryService = new this.api.hap.Service.Battery(name, 'battery');
-    this.updateBattery();
 
+    // Bin sensor service
     this.binSensorService = new this.api.hap.Service.ContactSensor(`${name} Bin`, 'bin');
-    this.updateBinStatus();
 
+    // Aggregate services
     this.services = [
       this.vacuumService,
       this.dockService,
       this.batteryService,
       this.binSensorService,
     ];
+
+    // Start periodic state polling
+    this.initializeStatePolling();
   }
 
-  async handleActiveSet(value: CharacteristicValue) {
-    if (value) {
-      this.log.info(`${this.device.name}: Starting cleaning`);
-      await this.robot.start();
-    } else {
-      this.log.info(`${this.device.name}: Stopping cleaning`);
-      await this.robot.stop();
-    }
-  }
-
-  async handleDockSet(value: CharacteristicValue) {
-    if (value) {
-      this.log.info(`${this.device.name}: Sending to dock`);
-      await this.robot.dock();
-    }
-  }
-
-  private async updateBattery() {
+  private async handleActiveSet(value: CharacteristicValue) {
     try {
-      const status = await this.robot.getRobotState(['batPct', 'cleanMissionStatus']);
-      this.batteryService
-        .setCharacteristic(this.api.hap.Characteristic.BatteryLevel, status.batPct);
+      if (value) {
+        this.log.info(`${this.device.name}: Starting cleaning`);
+        await this.robot.start();
+      } else {
+        this.log.info(`${this.device.name}: Stopping cleaning`);
+        await this.robot.stop();
+      }
+    } catch (err) {
+      this.log.error(`${this.device.name}: Vacuum command failed — ${err}`);
+    }
+  }
 
+  private async handleDockSet(value: CharacteristicValue) {
+    try {
+      if (value) {
+        this.log.info(`${this.device.name}: Sending to dock`);
+        await this.robot.dock();
+      }
+    } catch (err) {
+      this.log.error(`${this.device.name}: Dock command failed — ${err}`);
+    }
+  }
+
+  private initializeStatePolling() {
+    this.fetchState();
+    this.statePollInterval = setInterval(() => this.fetchState(), 60_000);
+  }
+
+  private async fetchState() {
+    try {
+      const state = await this.robot.getRobotState(['batPct', 'bin', 'cleanMissionStatus']);
+      const battery = state.batPct;
+      const charging = state.cleanMissionStatus?.phase === 'charge';
+      const binFull = state.bin?.full ?? false;
+
+      this.batteryService
+        .setCharacteristic(this.api.hap.Characteristic.BatteryLevel, battery);
       this.batteryService
         .setCharacteristic(
           this.api.hap.Characteristic.ChargingState,
-          status.cleanMissionStatus && status.cleanMissionStatus.phase === 'charge'
+          charging
             ? this.api.hap.Characteristic.ChargingState.CHARGING
             : this.api.hap.Characteristic.ChargingState.NOT_CHARGING
         );
-    } catch (error) {
-      this.log.error(`${this.device.name}: Failed to update battery status — ${error}`);
-    }
-  }
-
-  private async updateBinStatus() {
-    try {
-      const status = await this.robot.getRobotState(['bin']);
-      const binFull = status.bin && status.bin.full;
       this.binSensorService
         .setCharacteristic(
           this.api.hap.Characteristic.ContactSensorState,
-          binFull ? this.api.hap.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
-                  : this.api.hap.Characteristic.ContactSensorState.CONTACT_DETECTED
+          binFull
+            ? this.api.hap.Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
+            : this.api.hap.Characteristic.ContactSensorState.CONTACT_DETECTED
         );
-    } catch (error) {
-      this.log.error(`${this.device.name}: Failed to update bin status — ${error}`);
+    } catch (err) {
+      this.log.error(`${this.device.name}: State fetch failed — ${err}`);
     }
   }
 
   getServices(): Service[] {
     return this.services;
+  }
+
+  // Clean up timers when accessory is removed
+  public dispose() {
+    if (this.statePollInterval) {
+      clearInterval(this.statePollInterval);
+      this.statePollInterval = undefined;
+    }
   }
 }
