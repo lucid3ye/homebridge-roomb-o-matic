@@ -9,8 +9,8 @@ export class RoombaAccessory {
   private batteryService: Service;
   private binSensorService: Service;
   private robot: any;
-  private statePollInterval?: NodeJS.Timer;
-
+  private statePollInterval?: ReturnType<typeof setInterval>;
+  
   constructor(
     private readonly log: Logging,
     private readonly api: API,
