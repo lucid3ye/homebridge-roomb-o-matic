@@ -9,9 +9,8 @@ import { request as httpsRequest } from 'node:https';
  */
 export interface Robot {
   blid: string;
-  password: string;
+  password: string; // untrusted string from iRobot — keep as-is
   ip?: string;
-  name: string; // ✅ Added so platform and accessory work
 }
 
 /**
@@ -54,8 +53,8 @@ export async function getIP(blid: string, attempt = 1): Promise<string> {
       });
 
       setTimeout(() => {
-        void getIP(blid, attempt + 1).then(resolve).catch(reject);
         server.close();
+        void getIP(blid, attempt + 1).then(resolve).catch(reject);
       }, 5000);
     });
 
