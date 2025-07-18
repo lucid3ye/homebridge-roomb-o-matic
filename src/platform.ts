@@ -72,4 +72,4 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
     }
   }
 }
-}
+
