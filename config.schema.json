@@ -1,0 +1,50 @@
+{
+  "pluginAlias": "RoombOMatic",
+  "pluginType": "platform",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Platform Name",
+        "type": "string",
+        "default": "RoombOMatic"
+      },
+      "email": {
+        "title": "iRobot Email",
+        "type": "string"
+      },
+      "password": {
+        "title": "iRobot Password",
+        "type": "string"
+      },
+      "devices": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "blid": {
+              "title": "Roomba ID (BLID)",
+              "type": "string"
+            },
+            "name": {
+              "title": "Device Name",
+              "type": "string"
+            },
+            "ip": {
+              "title": "IP Address (Optional)",
+              "type": "string"
+            }
+          },
+          "required": ["blid", "name"]
+        }
+      },
+      "debug": {
+        "title": "Enable Debug Logging",
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "required": ["name", "devices"]
+  }
+}
