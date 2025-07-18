@@ -1,20 +1,23 @@
 /**
- * Roomb-O-Matic Accessory
- * homebridge-roomb-o-matic
- * 
- * Developed by James Walker (O‑Matic Factory)
+ * Roomb-O-Matic Accessory — Version 1.7
+ * Part of the O‑Matic Factory Homebridge Suite
  * https://o-matic.me
  */
 
-import type { AccessoryPlugin, API, CharacteristicGetCallback, CharacteristicSetCallback, CharacteristicValue, Logging, PlatformAccessory, Service } from 'homebridge';
+import type {
+  AccessoryPlugin,
+  API,
+  CharacteristicGetCallback,
+  CharacteristicSetCallback,
+  CharacteristicValue,
+  Logging,
+  PlatformAccessory,
+  Service,
+} from 'homebridge';
+
+import type { RoombOMaticPlatform } from './platform.js';
 import type { DeviceConfig, RoombaPlatformConfig } from './settings.js';
-// Import RoombaPlatform from its correct module or define it if missing
-// If the file is actually named 'roombaPlatform.ts', update the import to:
-
-// Or, if the file is in a different folder, adjust the path accordingly, e.g.:
-// import type { RoombaPlatform } from './platform/roombaPlatform';
 import type { Robot } from './roomba.js';
-
 
 export default class RoombaAccessory implements AccessoryPlugin {
   private switchService: Service;
@@ -24,7 +27,7 @@ export default class RoombaAccessory implements AccessoryPlugin {
   private isRunning = false;
 
   constructor(
-    readonly platform: any,
+    readonly platform: RoombOMaticPlatform,
     accessory: PlatformAccessory,
     log: Logging,
     device: Robot & DeviceConfig,
@@ -62,6 +65,7 @@ export default class RoombaAccessory implements AccessoryPlugin {
   }
 
   async setRunningState(start: boolean, cb: CharacteristicSetCallback) {
+    this.log.debug(`Roomba setRunningState(${start}) called`);
     try {
       if (start) {
         await this.startCleaning();
@@ -77,13 +81,13 @@ export default class RoombaAccessory implements AccessoryPlugin {
   }
 
   async startCleaning() {
-    // Connect and start Roomba (e.g., dorita980 local command)
-    this.log.info('Starting Roomba (placeholder)');
+    // TODO: Implement startCleaning() via dorita980
+    this.log.info('TODO: Implement startCleaning() via dorita980');
   }
 
   async stopCleaning() {
-    // Connect and stop/dock Roomba
-    this.log.info('Stopping Roomba (placeholder)');
+    // TODO: Implement stopCleaning() via dorita980
+    this.log.info('TODO: Implement stopCleaning() via dorita980');
   }
 
   getServices(): Service[] {
@@ -91,4 +95,6 @@ export default class RoombaAccessory implements AccessoryPlugin {
     if (this.batteryService) services.push(this.batteryService);
     return services;
   }
+
+  // TODO: Add support for battery status, bin monitor, schedule sync
 }
