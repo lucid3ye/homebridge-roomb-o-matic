@@ -3,6 +3,7 @@
   "pluginType": "platform",
   "schema": {
     "type": "object",
+    "title": "Roomb-O-Matic Platform Configuration",
     "properties": {
       "name": {
         "type": "string",
@@ -27,6 +28,7 @@
         "title": "Roomba Devices",
         "items": {
           "type": "object",
+          "title": "Device",
           "properties": {
             "name": {
               "type": "string",
