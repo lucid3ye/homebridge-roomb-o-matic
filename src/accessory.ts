@@ -1,9 +1,3 @@
-/**
- * Roomb-O-Matic Accessory — Version 1.7
- * Part of the O‑Matic Factory Homebridge Suite
- * https://o-matic.me
- */
-
 import type {
   AccessoryPlugin,
   API,
@@ -18,11 +12,17 @@ import type {
 import type { RoombOMaticPlatform } from './platform.js';
 import type { DeviceConfig, RoombaPlatformConfig } from './settings.js';
 import type { Robot } from './roomba.js';
-import { startRoomba, stopRoomba, dockRoomba, getRobotStatus } from './roomba.js';
+import {
+  startRoomba,
+  stopRoomba,
+  dockRoomba,
+  getRobotStatus,
+} from './roomba.js';
 
-export default class RoombaAccessory implements AccessoryPlugin {
+export class RoombaAccessory implements AccessoryPlugin {
   private switchService: Service;
   private batteryService?: Service;
+  private dockService?: Service;
   private pollingInterval?: NodeJS.Timeout;
   private log: Logging;
   private api: API;
@@ -41,20 +41,23 @@ export default class RoombaAccessory implements AccessoryPlugin {
     this.log = log;
     this.robot = device;
 
-    // Show as a Fan in HomeKit (current workaround for vacuums)
+    // HomeKit workaround: vacuums show as Fan
     accessory.category = this.api.hap.Categories.FAN;
 
     const Service = api.hap.Service;
     const Characteristic = api.hap.Characteristic;
 
+    // Primary Fanv2 control service
     this.switchService =
-      accessory.getService(Service.Fanv2) ?? accessory.addService(Service.Fanv2, device.name);
+      accessory.getService(Service.Fanv2) ??
+      accessory.addService(Service.Fanv2, device.name);
     this.switchService.setPrimaryService(true);
 
     // Remove old Switch if present
     const oldSwitch = accessory.getService(Service.Switch);
     if (oldSwitch) accessory.removeService(oldSwitch);
 
+    // Cleaning On/Off
     this.switchService
       .getCharacteristic(Characteristic.Active)
       .on('set', (value: CharacteristicValue, cb: CharacteristicSetCallback) => {
@@ -62,11 +65,18 @@ export default class RoombaAccessory implements AccessoryPlugin {
         this.setRunningState(start, cb);
       })
       .on('get', (cb: CharacteristicGetCallback) => {
-        cb(null, this.isRunning ? Characteristic.Active.ACTIVE : Characteristic.Active.INACTIVE);
+        cb(
+          null,
+          this.isRunning
+            ? Characteristic.Active.ACTIVE
+            : Characteristic.Active.INACTIVE,
+        );
       });
 
+    // Battery service setup
     this.batteryService =
-      accessory.getService(Service.Battery) ?? accessory.addService(Service.Battery, `${device.name} Battery`);
+      accessory.getService(Service.Battery) ??
+      accessory.addService(Service.Battery, `${device.name} Battery`);
 
     this.batteryService
       .getCharacteristic(Characteristic.BatteryLevel)
@@ -75,13 +85,33 @@ export default class RoombaAccessory implements AccessoryPlugin {
     this.batteryService
       .getCharacteristic(Characteristic.ChargingState)
       .on('get', (cb: CharacteristicGetCallback) =>
-        cb(null, Characteristic.ChargingState.NOT_CHARGING));
+        cb(null, Characteristic.ChargingState.NOT_CHARGING),
+      );
+
+    // Dock switch service (optional control)
+    this.dockService =
+      accessory.getService('Dock') ??
+      accessory.addService(Service.Switch, 'Dock');
+
+    this.dockService
+      .getCharacteristic(Characteristic.On)
+      .on('set', async (value: CharacteristicValue, cb: CharacteristicSetCallback) => {
+        if (value) {
+          try {
+            await dockRoomba(this.robot, this.log);
+          } catch (err: any) {
+            this.log.warn(`Docking failed: ${err}`);
+          }
+        }
+        cb(null);
+      })
+      .on('get', (cb: CharacteristicGetCallback) => cb(null, false));
 
     this.startPolling();
   }
 
   async setRunningState(start: boolean, cb: CharacteristicSetCallback) {
-    this.log.debug(`Roomba setRunningState(${start}) called`);
+    this.log.debug(`Roomba setRunningState(${start})`);
     try {
       if (start) {
         await this.startCleaning();
@@ -104,12 +134,6 @@ export default class RoombaAccessory implements AccessoryPlugin {
     await stopRoomba(this.robot, this.log);
   }
 
-  getServices(): Service[] {
-    const services: Service[] = [this.switchService];
-    if (this.batteryService) services.push(this.batteryService);
-    return services;
-  }
-
   private startPolling() {
     const Characteristic = this.api.hap.Characteristic;
 
@@ -120,21 +144,34 @@ export default class RoombaAccessory implements AccessoryPlugin {
         const batteryPercent = state.batPct ?? 100;
         const charging = phase === 'charging' || phase === 'chargingerror';
 
-        this.batteryService?.updateCharacteristic(Characteristic.BatteryLevel, batteryPercent);
+        this.batteryService?.updateCharacteristic(
+          Characteristic.BatteryLevel,
+          batteryPercent,
+        );
+
         this.batteryService?.updateCharacteristic(
           Characteristic.ChargingState,
-          charging ? Characteristic.ChargingState.CHARGING : Characteristic.ChargingState.NOT_CHARGING
+          charging
+            ? Characteristic.ChargingState.CHARGING
+            : Characteristic.ChargingState.NOT_CHARGING,
         );
 
         const isRunning = ['run', 'cleaning'].includes(phase);
         this.switchService.updateCharacteristic(
           Characteristic.Active,
-          isRunning ? Characteristic.Active.ACTIVE : Characteristic.Active.INACTIVE
+          isRunning ? Characteristic.Active.ACTIVE : Characteristic.Active.INACTIVE,
         );
         this.isRunning = isRunning;
       } catch (err) {
         this.log.debug('Polling failed:', err);
       }
-    }, 60000); // poll every 60 seconds
+    }, 60000); // 1 min
+  }
+
+  getServices(): Service[] {
+    const services: Service[] = [this.switchService];
+    if (this.batteryService) services.push(this.batteryService);
+    if (this.dockService) services.push(this.dockService);
+    return services;
   }
 }
