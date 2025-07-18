@@ -1,8 +1,17 @@
 /* src/platform.ts */
 
-import type { API, Characteristic, DynamicPlatformPlugin, Logging, PlatformAccessory, Service } from 'homebridge';
-import { PLUGIN_NAME, PLATFORM_NAME } from './settings.js';
+import type {
+  API,
+  Characteristic,
+  DynamicPlatformPlugin,
+  Logging,
+  PlatformAccessory,
+  Service,
+} from 'homebridge';
+
+import type { Robot } from './roomba.js';
 import type { DeviceConfig } from './settings.js';
+import { getRoombas } from './roomba.js';
 import { RoombaAccessory } from './accessory.js';
 
 export class RoombOMaticPlatform implements DynamicPlatformPlugin {
@@ -34,7 +43,15 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
       return;
     }
 
-    const devices: DeviceConfig[] = this.config.devices;
+    const robots = await getRoombas(this.config.devices, this.log);
+
+    const devices: (Robot & DeviceConfig)[] = this.config.devices.map((config: DeviceConfig) => {
+      const matchedRobot = robots.find((robot: Robot) => robot.blid === config.blid);
+      return {
+        ...matchedRobot!,
+        name: config.name,
+      };
+    });
 
     for (const device of devices) {
       const uuid = this.api.hap.uuid.generate(device.blid);
@@ -43,15 +60,16 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
       if (existingAccessory) {
         this.log.info(`Restoring existing accessory: ${existingAccessory.displayName}`);
         existingAccessory.category = this.api.hap.Categories.VACUUM;
-        new RoombaAccessory(this.log, this.api, existingAccessory, device);
+        new RoombaAccessory(this, existingAccessory, this.log, device, this.config, this.api);
         this.api.updatePlatformAccessories([existingAccessory]);
       } else {
         this.log.info(`Adding new accessory: ${device.name}`);
         const accessory = new this.api.platformAccessory(device.name, uuid);
         accessory.category = this.api.hap.Categories.VACUUM;
-        new RoombaAccessory(this.log, this.api, accessory, device);
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        new RoombaAccessory(this, accessory, this.log, device, this.config, this.api);
+        this.api.registerPlatformAccessories('homebridge-roomb-o-matic', 'RoombOMatic', [accessory]);
       }
     }
   }
+}
 }
