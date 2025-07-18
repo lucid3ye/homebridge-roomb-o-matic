@@ -13,7 +13,7 @@ export interface Robot {
   blid: string;
   password: string;
   ip: string;
-  client?: any;
+  client: InstanceType<typeof dorita980.Local>;
 }
 
 export async function getRoombas(devices: DeviceConfig[], log: Logging): Promise<Robot[]> {
@@ -23,9 +23,16 @@ export async function getRoombas(devices: DeviceConfig[], log: Logging): Promise
     const { blid, password, ip } = device;
     try {
       const client = new dorita980.Local(blid, password, ip);
-      log.info(`Connected to Roomba at ${ip}`);
+      await client.on('connect');
       await client.getRobotState(['name']); // Quick ping
-      robots.push({ name: device.name, blid, password, ip, client });
+      log.info(`Connected to Roomba at ${ip}`);
+      robots.push({
+        name: device.name,
+        blid,
+        password,
+        ip,
+        client,
+      });
     } catch (error) {
       log.warn(`Failed to connect to Roomba (${device.name}) at ${ip}: ${error}`);
     }
@@ -50,6 +57,16 @@ export async function stopRoomba(robot: Robot, log: Logging): Promise<void> {
     log.info(`${robot.name}: Cleaning stopped.`);
   } catch (err) {
     log.error(`${robot.name}: Failed to stop cleaning - ${err}`);
+    throw err;
+  }
+}
+
+export async function dockRoomba(robot: Robot, log: Logging): Promise<void> {
+  try {
+    await robot.client.sendCommand('dock');
+    log.info(`${robot.name}: Docking initiated.`);
+  } catch (err) {
+    log.error(`${robot.name}: Failed to dock - ${err}`);
     throw err;
   }
 }
