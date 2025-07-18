@@ -28,6 +28,12 @@
     "homebridge": "^1.9.0 || ^2.0.0",
     "node": "^20 || ^22"
   },
+  "files": [
+    "dist",
+    "config.schema.json",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "check": "npm install && npm outdated",
     "lint": "eslint src/**/*.ts",
