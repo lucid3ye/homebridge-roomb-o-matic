@@ -1,5 +1,5 @@
 /**
- * Roomb-O-Matic Accessory — Version 1.7+
+ * Roomb-O-Matic Accessory — Version 1.7
  * Part of the O‑Matic Factory Homebridge Suite
  * https://o-matic.me
  */
@@ -18,25 +18,30 @@ import type {
 import type { RoombOMaticPlatform } from './platform.js';
 import type { DeviceConfig, RoombaPlatformConfig } from './settings.js';
 import type { Robot } from './roomba.js';
-import { startRoomba, stopRoomba, getRobotStatus } from './roomba.js';
+import { startRoomba, stopRoomba, dockRoomba, getRobotStatus } from './roomba.js';
 
 export default class RoombaAccessory implements AccessoryPlugin {
   private switchService: Service;
-  private dockService: Service;
-  private batteryService: Service;
+  private batteryService?: Service;
+  private pollingInterval?: NodeJS.Timeout;
+  private log: Logging;
+  private api: API;
   private isRunning = false;
-  private isDocked = false;
-  private batteryLevel = 100;
-  private pollInterval?: NodeJS.Timeout;
+  private robot: Robot;
 
   constructor(
     readonly platform: RoombOMaticPlatform,
     accessory: PlatformAccessory,
-    private readonly log: Logging,
-    private readonly device: Robot & DeviceConfig,
-    private readonly config: RoombaPlatformConfig,
-    private readonly api: API,
+    log: Logging,
+    device: Robot & DeviceConfig,
+    config: RoombaPlatformConfig,
+    api: API,
   ) {
+    this.api = api;
+    this.log = log;
+    this.robot = device;
+
+    // Show as a Fan in HomeKit (current workaround for vacuums)
     accessory.category = this.api.hap.Categories.FAN;
 
     const Service = api.hap.Service;
@@ -46,96 +51,90 @@ export default class RoombaAccessory implements AccessoryPlugin {
       accessory.getService(Service.Fanv2) ?? accessory.addService(Service.Fanv2, device.name);
     this.switchService.setPrimaryService(true);
 
+    // Remove old Switch if present
     const oldSwitch = accessory.getService(Service.Switch);
     if (oldSwitch) accessory.removeService(oldSwitch);
 
     this.switchService
       .getCharacteristic(Characteristic.Active)
-      .on('set', this.setRunningState.bind(this))
-      .on('get', (cb) =>
-        cb(null, this.isRunning ? Characteristic.Active.ACTIVE : Characteristic.Active.INACTIVE),
-      );
-
-    this.dockService =
-      accessory.getService('Dock') || accessory.addService(Service.Switch, 'Dock', 'dock');
-    this.dockService
-      .getCharacteristic(Characteristic.On)
-      .on('set', this.sendToDock.bind(this))
-      .on('get', (cb) => cb(null, this.isDocked));
+      .on('set', (value: CharacteristicValue, cb: CharacteristicSetCallback) => {
+        const start = value === Characteristic.Active.ACTIVE;
+        this.setRunningState(start, cb);
+      })
+      .on('get', (cb: CharacteristicGetCallback) => {
+        cb(null, this.isRunning ? Characteristic.Active.ACTIVE : Characteristic.Active.INACTIVE);
+      });
 
     this.batteryService =
-      accessory.getService(Service.Battery) || accessory.addService(Service.Battery);
+      accessory.getService(Service.Battery) ?? accessory.addService(Service.Battery, `${device.name} Battery`);
+
     this.batteryService
       .getCharacteristic(Characteristic.BatteryLevel)
-      .on('get', (cb) => cb(null, this.batteryLevel));
+      .on('get', (cb: CharacteristicGetCallback) => cb(null, 100));
+
     this.batteryService
       .getCharacteristic(Characteristic.ChargingState)
-      .on('get', (cb) =>
-        cb(null, this.isDocked ? Characteristic.ChargingState.CHARGING : Characteristic.ChargingState.NOT_CHARGING),
-      );
+      .on('get', (cb: CharacteristicGetCallback) =>
+        cb(null, Characteristic.ChargingState.NOT_CHARGING));
 
     this.startPolling();
   }
 
-  async setRunningState(value: CharacteristicValue, cb: CharacteristicSetCallback) {
-    const start = value === this.api.hap.Characteristic.Active.ACTIVE;
+  async setRunningState(start: boolean, cb: CharacteristicSetCallback) {
+    this.log.debug(`Roomba setRunningState(${start}) called`);
     try {
       if (start) {
-        await startRoomba(this.device, this.log);
+        await this.startCleaning();
         this.isRunning = true;
       } else {
-        await stopRoomba(this.device, this.log);
+        await this.stopCleaning();
         this.isRunning = false;
       }
-      cb(null);
-    } catch (err) {
-      this.log.error(`Failed to set cleaning state: ${err}`);
+      cb(null, this.isRunning ? 1 : 0);
+    } catch (err: any) {
       cb(err);
     }
   }
 
-  async sendToDock(value: CharacteristicValue, cb: CharacteristicSetCallback) {
-    if (!value) return cb(null); // No action on false
-    try {
-      await stopRoomba(this.device, this.log);
-      this.isRunning = false;
-      this.isDocked = true;
-      cb(null);
-    } catch (err) {
-      this.log.error(`Failed to dock: ${err}`);
-      cb(err);
-    }
+  async startCleaning() {
+    await startRoomba(this.robot, this.log);
   }
 
-  async pollStatus() {
-    try {
-      const status = await getRobotStatus(this.device, this.log);
-      this.batteryLevel = status.batteryLevel;
-      this.isDocked = status.isDocked;
-      this.isRunning = status.isRunning;
-
-      this.batteryService.updateCharacteristic(this.api.hap.Characteristic.BatteryLevel, this.batteryLevel);
-      this.batteryService.updateCharacteristic(
-        this.api.hap.Characteristic.ChargingState,
-        this.isDocked ? this.api.hap.Characteristic.ChargingState.CHARGING : this.api.hap.Characteristic.ChargingState.NOT_CHARGING,
-      );
-      this.switchService.updateCharacteristic(
-        this.api.hap.Characteristic.Active,
-        this.isRunning ? this.api.hap.Characteristic.Active.ACTIVE : this.api.hap.Characteristic.Active.INACTIVE,
-      );
-      this.dockService.updateCharacteristic(this.api.hap.Characteristic.On, this.isDocked);
-    } catch (err) {
-      this.log.warn(`Polling error for ${this.device.name}: ${err}`);
-    }
-  }
-
-  startPolling() {
-    const interval = (this.config.pollInterval || 15) * 1000;
-    this.pollInterval = setInterval(() => this.pollStatus(), interval);
-    this.log.info(`Started polling ${this.device.name} every ${interval / 1000}s`);
+  async stopCleaning() {
+    await stopRoomba(this.robot, this.log);
   }
 
   getServices(): Service[] {
-    return [this.switchService, this.dockService, this.batteryService];
+    const services: Service[] = [this.switchService];
+    if (this.batteryService) services.push(this.batteryService);
+    return services;
+  }
+
+  private startPolling() {
+    const Characteristic = this.api.hap.Characteristic;
+
+    this.pollingInterval = setInterval(async () => {
+      try {
+        const state = await getRobotStatus(this.robot, this.log);
+        const phase = state.phase || '';
+        const batteryPercent = state.batPct ?? 100;
+        const charging = phase === 'charging' || phase === 'chargingerror';
+
+        this.batteryService?.updateCharacteristic(Characteristic.BatteryLevel, batteryPercent);
+        this.batteryService?.updateCharacteristic(
+          Characteristic.ChargingState,
+          charging ? Characteristic.ChargingState.CHARGING : Characteristic.ChargingState.NOT_CHARGING
+        );
+
+        const isRunning = ['run', 'cleaning'].includes(phase);
+        this.switchService.updateCharacteristic(
+          Characteristic.Active,
+          isRunning ? Characteristic.Active.ACTIVE : Characteristic.Active.INACTIVE
+        );
+        this.isRunning = isRunning;
+      } catch (err) {
+        this.log.debug('Polling failed:', err);
+      }
+    }, 60000); // poll every 60 seconds
   }
 }
