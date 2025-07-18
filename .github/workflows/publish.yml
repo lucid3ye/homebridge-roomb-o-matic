@@ -19,7 +19,10 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Lint project
+        run: npm run lint
 
       - name: Build project
         run: npm run build
