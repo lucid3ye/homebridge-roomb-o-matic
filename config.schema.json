@@ -4,6 +4,24 @@
   "schema": {
     "type": "object",
     "properties": {
+      "name": {
+        "type": "string",
+        "title": "Platform Name",
+        "default": "RoombOMatic"
+      },
+      "email": {
+        "type": "string",
+        "title": "iRobot Account Email (optional)"
+      },
+      "password": {
+        "type": "string",
+        "title": "iRobot Account Password (optional)"
+      },
+      "debug": {
+        "type": "boolean",
+        "title": "Enable Debug Logging",
+        "default": false
+      },
       "devices": {
         "type": "array",
         "title": "Roomba Devices",
@@ -18,16 +36,16 @@
               "type": "string",
               "title": "BLID"
             },
-            "robotIP": {
+            "ip": {
               "type": "string",
-              "title": "Robot IP"
+              "title": "Robot IP Address"
             },
-            "robotPassword": {
+            "password": {
               "type": "string",
               "title": "Robot Password"
             }
           },
-          "required": ["name", "blid", "robotIP", "robotPassword"]
+          "required": ["name", "blid", "ip", "password"]
         }
       }
     },
