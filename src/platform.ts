@@ -51,13 +51,13 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
 
       if (existingAccessory) {
         this.log.info(`Restoring existing accessory: ${existingAccessory.displayName}`)
-        existingAccessory.category = this.api.hap.Categories.OTHER;
+        existingAccessory.category = this.api.hap.Categories.FAN;
         new RoombaAccessory(this, existingAccessory, this.log, device, this.config, this.api)
         this.api.updatePlatformAccessories([existingAccessory])
       } else {
         this.log.info(`Adding new accessory: ${device.name}`)
         const accessory = new this.api.platformAccessory(device.name, uuid)
-        accessory.category = this.api.hap.Categories.OTHER;
+        accessory.category = this.api.hap.Categories.FAN;
         new RoombaAccessory(this, accessory, this.log, device, this.config, this.api)
         this.api.registerPlatformAccessories('homebridge-roomb-o-matic', 'RoombOMatic', [accessory])
       }
