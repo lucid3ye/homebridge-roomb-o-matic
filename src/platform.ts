@@ -11,13 +11,14 @@ import type {
 
 import type { Robot } from './roomba.js';
 import type { DeviceConfig } from './settings.js';
-import { getRoombas } from './roomba.js';
+import { getRoombas, getRobotStatus } from './roomba.js';
 import { RoombaAccessory } from './accessory.js';
 
 export class RoombOMaticPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service;
   public readonly Characteristic: typeof Characteristic;
   private readonly accessories: Map<string, PlatformAccessory> = new Map();
+  private readonly robotMap: Map<string, Robot> = new Map();
   private static readonly pluginName = 'homebridge-roomb-o-matic';
 
   constructor(
@@ -59,7 +60,9 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
           this.log.warn(`No match for device ${config.name} (blid: ${config.blid})`);
           return null;
         }
-        return { ...matchedRobot, name: config.name };
+        const fullDevice = { ...matchedRobot, name: config.name };
+        this.robotMap.set(config.blid, fullDevice);
+        return fullDevice;
       })
       .filter((d): d is Robot & DeviceConfig => d !== null);
 
@@ -88,5 +91,21 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
         );
       }
     }
+
+    // ✅ Start polling
+    this.startPolling();
+  }
+
+  private startPolling(): void {
+    setInterval(async () => {
+      for (const [blid, robot] of this.robotMap) {
+        const accessory = this.accessories.get(this.api.hap.uuid.generate(blid));
+        if (!accessory) continue;
+        const status = await getRobotStatus(robot, this.log);
+        accessory.context.battery = status.batPct;
+        accessory.context.phase = status.phase;
+        // Services will use context during get handlers
+      }
+    }, 60 * 1000); // every 60 seconds
   }
 }
