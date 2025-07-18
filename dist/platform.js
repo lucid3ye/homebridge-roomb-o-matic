@@ -2,7 +2,7 @@
 /* src/platform.ts */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RoombOMaticPlatform = void 0;
-const settings_js_1 = require("./settings.js");
+const roomba_js_1 = require("./roomba.js");
 const accessory_js_1 = require("./accessory.js");
 class RoombOMaticPlatform {
     constructor(log, config, api) {
@@ -25,22 +25,29 @@ class RoombOMaticPlatform {
             this.log.error('No devices configured.');
             return;
         }
-        const devices = this.config.devices;
+        const robots = await (0, roomba_js_1.getRoombas)(this.config.devices, this.log);
+        const devices = this.config.devices.map((config) => {
+            const matchedRobot = robots.find((robot) => robot.blid === config.blid);
+            return {
+                ...matchedRobot,
+                name: config.name,
+            };
+        });
         for (const device of devices) {
             const uuid = this.api.hap.uuid.generate(device.blid);
             const existingAccessory = this.accessories.get(uuid);
             if (existingAccessory) {
                 this.log.info(`Restoring existing accessory: ${existingAccessory.displayName}`);
-                existingAccessory.category = this.api.hap.Categories.VACUUM;
+                existingAccessory.category = 3 /* this.api.hap.Categories.FAN */;
                 new accessory_js_1.RoombaAccessory(this.log, this.api, existingAccessory, device);
                 this.api.updatePlatformAccessories([existingAccessory]);
             }
             else {
                 this.log.info(`Adding new accessory: ${device.name}`);
                 const accessory = new this.api.platformAccessory(device.name, uuid);
-                accessory.category = this.api.hap.Categories.VACUUM;
+                accessory.category = 3 /* this.api.hap.Categories.FAN */;
                 new accessory_js_1.RoombaAccessory(this.log, this.api, accessory, device);
-                this.api.registerPlatformAccessories(settings_js_1.PLUGIN_NAME, settings_js_1.PLATFORM_NAME, [accessory]);
+                this.api.registerPlatformAccessories('homebridge-roomb-o-matic', 'RoombOMatic', [accessory]);
             }
         }
     }
