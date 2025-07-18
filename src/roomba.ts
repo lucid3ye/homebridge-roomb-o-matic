@@ -70,3 +70,29 @@ export async function dockRoomba(robot: Robot, log: Logging): Promise<void> {
     throw err;
   }
 }
+
+export async function getRobotStatus(robot: Robot, log: Logging): Promise<{
+  batteryLevel: number;
+  isDocked: boolean;
+  isRunning: boolean;
+}> {
+  try {
+    const state = await robot.client.getRobotState([
+      'batPct',
+      'cleanMissionStatus',
+      'dock',
+    ]);
+
+    const batteryLevel = state.batPct ?? 100;
+    const phase = state.cleanMissionStatus?.phase ?? '';
+    const docked = state.dock?.known && state.dock?.state === 'dock';
+
+    const isRunning = ['run', 'clean', 'hmUsrDock', 'pause'].includes(phase);
+    const isDocked = phase === 'charge' || docked;
+
+    return { batteryLevel, isDocked, isRunning };
+  } catch (err) {
+    log.warn(`${robot.name}: Failed to get status - ${err}`);
+    return { batteryLevel: 0, isDocked: false, isRunning: false };
+  }
+}
