@@ -10,12 +10,14 @@ True vacuum semantics. Fully Homebridge UI-integrated. Built for future-ready, b
 
 ---
 
-## 🆕 What’s New in v1.1.7
+## 🆕 What’s New in v1.2.0
 
-- ✅ **Vacuum Category Added:** Accessories now show up correctly in HomeKit as Vacuums (`Categories.VACUUM`)
-- ✅ **Improved Tile Support:** One Roomba, one tile — or many, cleanly grouped
-- ✅ **Updated Config Schema:** Better integration with Homebridge Config UI
-- ✅ **New Metadata & Tags:** Improved discoverability in Homebridge Plugin Library
+- ✅ **Battery Level + Charging Status Reporting**
+- ✅ **Dock Command Support**
+- ✅ **Polling Loop Added** for live status updates
+- ✅ **Fully Working Homebridge UI Schema**
+- ✅ **Config Cleanup** (uses `ip` instead of `robotIP`)
+- ✅ **Internal Cleanup & Agent Conformance (Spec 7)**
 
 ---
 
@@ -53,34 +55,38 @@ Once installed, go to the Homebridge Config UI or manually update your config.js
   "plugin_map": {
     "plugin_name": "homebridge-roomb-o-matic"
   },
+  "name": "RoombOMatic",
   "devices": [
     {
       "name": "Living Room Roomba",
       "blid": "314159265358979",
+      "ip": "192.168.1.42",
       "password": "your_roomba_password"
     }
-  ]
+  ],
+  "debug": false
 }
 
-Need help getting your Roomba blid and password? Use dorita980 or follow guides in the community.
+Need help getting your Roomba’s BLID and password? Use dorita980 or follow community guides.
 
 ⸻
 
 🧪 Features
 	•	🔐 Secure connection to Roomba via local network
-	•	🧹 Start, stop, dock, locate via HomeKit
-	•	🏠 True HomeKit vacuum accessory category
-	•	🪟 Homebridge Config UI support with built-in schema
+	•	🧹 Start, stop, dock, locate — all via HomeKit
+	•	🔋 Battery level + charging status
+	•	🏠 True HomeKit Vacuum accessory category
+	•	🪟 Homebridge Config UI support with full schema
 	•	🧠 Designed with long-term compatibility in mind
 
 ⸻
 
-🐞 Troubleshooting
+🧯 Troubleshooting
 
 Check your logs in Homebridge. Common issues include:
-	•	Wrong password or blid — double-check with dorita980 pairing script
-	•	Robot not reachable — ensure it’s on the same network and awake
-	•	Plugin not loading — try npm rebuild and restart Homebridge
+	•	❌ Incorrect password or BLID — double-check using dorita980 pairing
+	•	❌ Robot unreachable — ensure it’s awake and on the same network
+	•	❌ Plugin not loading — try npm rebuild and restart Homebridge
 
 Still stuck? Open an issue here:
 👉 https://github.com/lucid3ye/homebridge-roomb-o-matic/issues
@@ -95,7 +101,7 @@ npm install
 npm run build
 npm link
 
-Run Homebridge in another terminal to test your dev build.
+Then run Homebridge in a second terminal to test your dev build.
 
 ⸻
 
@@ -106,5 +112,7 @@ Learn more: https://o-matic.me
 
 ⸻
 
-🛡️ “Roomb-O-Matic” is not affiliated with iRobot. This is an independent plugin for personal use.
+🛡️ Legal
+
+“Roomb-O-Matic” is not affiliated with iRobot. This is an independent plugin intended for personal use only.
 
