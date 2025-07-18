@@ -1,4 +1,21 @@
+# Source files (compiled via tsc)
 src/
+
+# IDE/editor artifacts
+.vscode/
 *.log
-.vscode
-.github
+
+# GitHub workflows and configs
+.github/
+
+# Tests and coverage
+tests/
+test/
+coverage/
+
+# Config files not needed in package
+tsconfig.json
+eslint.config.js
+
+# Optional: Exclude changelog from package
+CHANGELOG.md
