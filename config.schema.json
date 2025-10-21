@@ -1,15 +1,68 @@
-import { API } from 'homebridge';
-
-export class RoombOMaticPlatform {
-  private api: API;
-
-  constructor(api: API) {
-    this.api = api;
-  }
-
-  someMethod() {
-    // Example usage
-    const category = this.api.hap.Categories.OTHER;
-    // ... rest of the code
-  }
+{
+  "pluginAlias": "Roomb-O-Matic",
+  "pluginType": "platform",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Platform Name",
+        "type": "string",
+        "default": "Roomb-O-Matic",
+        "required": true
+      },
+      "devices": {
+        "title": "Devices",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Robot Name",
+              "type": "string",
+              "required": true,
+              "placeholder": "Living Room Roomba"
+            },
+            "blid": {
+              "title": "BLID (Robot ID)",
+              "type": "string",
+              "required": true,
+              "placeholder": "your-blid"
+            },
+            "robotpwd": {
+              "title": "Robot Password",
+              "type": "string",
+              "required": true,
+              "placeholder": "your-password"
+            },
+            "ipaddress": {
+              "title": "IP Address",
+              "type": "string",
+              "required": true,
+              "placeholder": "192.168.1.x",
+              "format": "ipv4"
+            }
+          }
+        }
+      },
+      "debug": {
+        "title": "Enable Debug Logging",
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "layout": [
+    "name",
+    {
+      "type": "array",
+      "items": [
+        "devices[].name",
+        "devices[].blid",
+        "devices[].robotpwd",
+        "devices[].ipaddress"
+      ]
+    },
+    "debug"
+  ]
 }

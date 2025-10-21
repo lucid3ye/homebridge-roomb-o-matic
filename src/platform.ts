@@ -9,9 +9,8 @@ import type {
   Service,
 } from 'homebridge';
 
-import type { Robot } from './roomba.js';
 import type { DeviceConfig } from './settings.js';
-import { getRoombas } from './roomba.js';
+import { PLUGIN_NAME, PLATFORM_NAME } from './settings.js';
 import { RoombaAccessory } from './accessory.js';
 
 export class RoombOMaticPlatform implements DynamicPlatformPlugin {
@@ -38,22 +37,19 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
   }
 
   private async discoverDevices(): Promise<void> {
-    if (!this.config.devices) {
-      this.log.error('No devices configured.');
+    if (!this.config.devices || !Array.isArray(this.config.devices) || this.config.devices.length === 0) {
+      this.log.error('No devices configured. Please add devices in the Homebridge config.');
       return;
     }
 
-    const robots = await getRoombas(this.config.devices, this.log);
+    this.log.info(`Discovering ${this.config.devices.length} configured device(s)...`);
 
-    const devices: (Robot & DeviceConfig)[] = this.config.devices.map((config: DeviceConfig) => {
-      const matchedRobot = robots.find((robot: Robot) => robot.blid === config.blid);
-      return {
-        ...matchedRobot!,
-        name: config.name,
-      };
-    });
+    for (const device of this.config.devices) {
+      if (!device.blid || !device.robotpwd || !device.ipaddress) {
+        this.log.error(`Device "${device.name || 'unknown'}" is missing required fields (blid, robotpwd, or ipaddress). Skipping.`);
+        continue;
+      }
 
-    for (const device of devices) {
       const uuid = this.api.hap.uuid.generate(device.blid);
       const existingAccessory = this.accessories.get(uuid);
 
@@ -67,7 +63,7 @@ export class RoombOMaticPlatform implements DynamicPlatformPlugin {
         const accessory = new this.api.platformAccessory(device.name, uuid);
         (accessory as any).category = this.api.hap.Categories.FAN;
         new RoombaAccessory(this.log, this.api, accessory, device);
-        this.api.registerPlatformAccessories('homebridge-roomb-o-matic', 'RoombOMatic', [accessory]);
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }
     }
   }
