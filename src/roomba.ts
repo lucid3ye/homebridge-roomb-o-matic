@@ -43,8 +43,9 @@ export async function getIP(blid: string, attempt = 1): Promise<string> {
     });
 
     server.on('listening', () => {
-      console.log('UDP server listening, sending discovery packet...');
-      const message = Buffer.from([0xf0, 0x0f]); // Example broadcast packet
+      console.log('UDP server listening, sending iRobot discovery packet...');
+      // Proper iRobot discovery packet
+      const message = Buffer.from('irobotmcs');
       server.send(message, 0, message.length, 5678, '255.255.255.255', (err) => {
         if (err) {
           console.error(`UDP send error: ${err}`);
@@ -70,7 +71,7 @@ export async function getCredentials(email: string, password: string): Promise<a
   return new Promise((resolve, reject) => {
     const gigyaURL = new URL('https://accounts.us1.gigya.com/accounts.login');
     const payload = JSON.stringify({
-      apiKey: 'your_api_key_here',
+      apiKey: '3_qRzHxj6CNP_Cc5PyN6CvXN7OYOWxy8qSE2CEjEgQVJCNOX5kXISzXcqU_wOVJT_W',
       loginID: email,
       password: password,
     });

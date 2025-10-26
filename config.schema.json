@@ -1,15 +1,61 @@
-import { API } from 'homebridge';
-
-export class RoombOMaticPlatform {
-  private api: API;
-
-  constructor(api: API) {
-    this.api = api;
-  }
-
-  someMethod() {
-    // Example usage
-    const category = this.api.hap.Categories.OTHER;
-    // ... rest of the code
+{
+  "pluginAlias": "RoombOMatic",
+  "pluginType": "platform",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Platform Name",
+        "type": "string",
+        "default": "RoombOMatic",
+        "required": true
+      },
+      "email": {
+        "title": "iRobot Account Email",
+        "type": "string",
+        "required": false
+      },
+      "password": {
+        "title": "iRobot Account Password",
+        "type": "string",
+        "required": false
+      },
+      "debug": {
+        "title": "Debug Mode",
+        "type": "boolean",
+        "default": false,
+        "required": false
+      },
+      "devices": {
+        "type": "array",
+        "title": "Roomba Devices",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Device Name",
+              "type": "string",
+              "required": true
+            },
+            "blid": {
+              "title": "Robot BLID",
+              "type": "string",
+              "required": true
+            },
+            "robotpwd": {
+              "title": "Robot Password",
+              "type": "string",
+              "required": true
+            },
+            "ipaddress": {
+              "title": "Robot IP Address",
+              "type": "string",
+              "required": true
+            }
+          }
+        }
+      }
+    }
   }
 }

@@ -30,7 +30,7 @@
     "homebridge": "^1.9.0 || ^2.0.0",
     "node": "^20 || ^22"
   },
-  "config.schema": "./config.schema.json",
+  "configSchema": "./config.schema.json",
   "scripts": {
     "check": "npm install && npm outdated",
     "lint": "eslint src/**/*.ts",

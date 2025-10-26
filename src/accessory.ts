@@ -10,6 +10,9 @@ export class RoombaAccessory {
   private binSensorService: Service;
   private robot: any;
   private statePollInterval?: ReturnType<typeof setInterval>;
+  private reconnectAttempts = 0;
+  private readonly maxReconnectAttempts = 5;
+  private readonly reconnectDelay = 30000; // 30 seconds
 
   constructor(
     private readonly log: Logging,
@@ -95,14 +98,45 @@ export class RoombaAccessory {
 
   private async fetchHybridState() {
     try {
-      const state = await this.robot.getRobotState(['batPct', 'bin', 'cleanMissionStatus']);
+      const state = await this.robot.getRobotState(['batPct', 'bin', 'cleanMissionStatus', 'phase']);
       const battery = state.batPct;
       const charging = state.cleanMissionStatus?.phase === 'charge';
       const binFull = state.bin?.full ?? false;
+      
+      // Update vacuum state based on mission status
+      const isActive = ['run', 'stop', 'pause', 'hmUsrDock', 'hmMidMsn', 'hmPostMsn'].includes(state.phase);
+      this.vacuumService.updateCharacteristic(this.api.hap.Characteristic.On, isActive);
+      
+      // Update dock state
+      const isDocking = ['hmUsrDock', 'hmPostMsn'].includes(state.phase);
+      this.dockService.updateCharacteristic(this.api.hap.Characteristic.On, isDocking);
 
       this.updateCharacteristics(battery, charging, binFull);
+      this.reconnectAttempts = 0; // Reset reconnect attempts on successful connection
     } catch (err) {
       this.log.error(`${this.device.name}: Hybrid state fetch failed — ${err}`);
+      await this.handleConnectionError();
+    }
+  }
+
+  private async handleConnectionError() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      this.log.info(`${this.device.name}: Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      
+      // Clear existing interval
+      if (this.statePollInterval) {
+        clearInterval(this.statePollInterval);
+      }
+
+      // Try to reconnect after delay
+      setTimeout(() => {
+        const { blid, robotpwd, ipaddress } = this.device;
+        this.robot = new Local(blid, robotpwd, ipaddress);
+        this.initializeStatePolling();
+      }, this.reconnectDelay);
+    } else {
+      this.log.error(`${this.device.name}: Max reconnection attempts reached. Please check your Roomba connection.`);
     }
   }
 
